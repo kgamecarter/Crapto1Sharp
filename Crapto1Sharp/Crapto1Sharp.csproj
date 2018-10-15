@@ -2,6 +2,14 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <Authors>kgame</Authors>
+    <Company>kgame SOFT</Company>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Description>Mifare classic crypto1 implement</Description>
+    <PackageLicenseUrl>https://www.gnu.org/licenses/gpl-3.0.html</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/kgamecarter/Crapto1Sharp</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/kgamecarter/Crapto1Sharp</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
   </PropertyGroup>
 
 </Project>
