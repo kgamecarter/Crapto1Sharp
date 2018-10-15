@@ -32,5 +32,24 @@ namespace Crapto1Sharp.Extensions
             x = x >> 16 | x << 16;
             return x;
         }
+
+        public static uint ToUInt32(this byte[] a, int offset = 0)
+        {
+            uint result = 0;
+            for (int i = 0; i < 4; i++)
+                result = (result << 8) | a[i + offset];
+            return result;
+        }
+
+        public static byte[] GetBytes(this uint v)
+        {
+            byte[] result = new byte[4];
+            for (int i = 3; i >= 0; i--)
+            {
+                result[i] = (byte)v;
+                v >>= 8;
+            }
+            return result;
+        }
     }
 }

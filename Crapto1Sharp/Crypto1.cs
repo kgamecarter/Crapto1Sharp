@@ -81,7 +81,25 @@ namespace Crapto1Sharp
             return ret;
         }
 
+        public byte PeekCrypto1Bit()
+        {
+            return Filter(_state.Odd);
+        }
 
+        public void Encrypt( byte[] data, byte[] parirty, int offset, int length, bool isIn = false)
+        {
+            int end = offset + length;
+            for (int i = offset; i < end; i++)
+            {
+                // compute Parity
+                parirty[i] = OddParity8(data[i]);
+                // encrypt data
+                data[i] ^= Crypto1Byte(isIn ? data[i] : (byte)0);
+                // encrypt Parity
+                parirty[i] ^= PeekCrypto1Bit();
+            }
+        }
+        
         public static byte Filter(uint x)
         {
             uint f;
