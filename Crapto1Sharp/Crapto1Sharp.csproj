@@ -10,6 +10,7 @@
     <PackageProjectUrl>https://github.com/kgamecarter/Crapto1Sharp</PackageProjectUrl>
     <RepositoryUrl>https://github.com/kgamecarter/Crapto1Sharp</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
+    <Version>1.0.1</Version>
   </PropertyGroup>
 
 </Project>
