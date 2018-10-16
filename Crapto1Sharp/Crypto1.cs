@@ -38,7 +38,7 @@ namespace Crapto1Sharp
         {
             for (int i = 47; i > 0; i -= 2)
             {
-                _state.Odd = State.Odd << 1 | key.Bit((i - 1) ^ 7);
+                _state.Odd = _state.Odd << 1 | key.Bit((i - 1) ^ 7);
                 _state.Even = _state.Even << 1 | key.Bit(i ^ 7);
             }
         }
@@ -50,11 +50,11 @@ namespace Crapto1Sharp
 
             feedin = ret & (isEncrypted ? 1u : 0u);
             feedin ^= _in > 0 ? 1u : 0u;
-            feedin ^= LF_POLY_ODD & State.Odd;
+            feedin ^= LF_POLY_ODD & _state.Odd;
             feedin ^= LF_POLY_EVEN & _state.Even;
             _state.Even = _state.Even << 1 | EvenParity32(feedin);
 
-            uint x = State.Odd;
+            uint x = _state.Odd;
             _state.Odd = _state.Even;
             _state.Even = x;
 
@@ -86,7 +86,7 @@ namespace Crapto1Sharp
             return Filter(_state.Odd);
         }
 
-        public void Encrypt( byte[] data, byte[] parirty, int offset, int length, bool isIn = false)
+        public void Encrypt(byte[] data, byte[] parirty, int offset, int length, bool isIn = false)
         {
             int end = offset + length;
             for (int i = offset; i < end; i++)
