@@ -49,7 +49,7 @@ namespace Crapto1Sharp
             byte ret = Filter(_state.Odd);
 
             feedin = ret & (isEncrypted ? 1u : 0u);
-            feedin ^= _in > 0 ? 1u : 0u;
+            feedin ^= _in != 0 ? 1u : 0u;
             feedin ^= LF_POLY_ODD & _state.Odd;
             feedin ^= LF_POLY_EVEN & _state.Even;
             _state.Even = _state.Even << 1 | EvenParity32(feedin);
@@ -71,12 +71,12 @@ namespace Crapto1Sharp
             return ret;
         }
 
-        public byte Crypto1Word(uint _in = 0, bool isEncrypted = false)
+        public uint Crypto1Word(uint _in = 0, bool isEncrypted = false)
         {
-            byte ret = 0;
+            uint ret = 0;
 
             for (int i = 0; i < 32; ++i)
-                ret |= (byte)(Crypto1Bit(_in.BeBit(i), isEncrypted) << i);
+                ret |= (uint)Crypto1Bit(_in.BeBit(i), isEncrypted) << (i ^ 24);
 
             return ret;
         }
