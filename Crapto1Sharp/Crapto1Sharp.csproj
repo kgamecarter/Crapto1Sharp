@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>netstandard2.0;net461;net45;net40</TargetFrameworks>
     <Authors>kgame</Authors>
     <Company>kgame SOFT</Company>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
@@ -10,7 +10,7 @@
     <PackageProjectUrl>https://github.com/kgamecarter/Crapto1Sharp</PackageProjectUrl>
     <RepositoryUrl>https://github.com/kgamecarter/Crapto1Sharp</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <Version>1.0.2</Version>
+    <Version>1.0.3</Version>
   </PropertyGroup>
 
 </Project>
