@@ -8,6 +8,54 @@ namespace Crapto1Sharp
     public class Crapto1 : Crypto1
     {
         /// <summary>
+        /// helper, calculates the partial linear feedback contributions and puts in MSB
+        /// </summary>
+        /// <param name="item"></param>
+        /// <param name="mask1"></param>
+        /// <param name="mask2"></param>
+        private static void UpdateContribution(ref uint item, uint mask1, uint mask2)
+        {
+            uint p = item >> 25;
+
+            p = p << 1 | EvenParity32(item & mask1);
+            p = p << 1 | EvenParity32(item & mask2);
+            item = p << 24 | (item & 0xffffff);
+        }
+
+        /// <summary>
+        /// using a bit of the keystream extend the table of possible lfsr states
+        /// </summary>
+        /// <param name="tbl"></param>
+        /// <param name="end"></param>
+        /// <param name="bit"></param>
+        /// <param name="m1"></param>
+        /// <param name="m2"></param>
+        /// <param name="in"></param>
+        private static void ExtendTable(Span<uint> tbl, ref int end, uint bit, uint m1, uint m2, uint @in)
+        {
+            @in <<= 24;
+            var i = 0;
+            for (tbl[i] <<= 1; i <= end; tbl[++i] <<= 1)
+                if ((Filter(tbl[i]) ^ Filter(tbl[i] | 1)) != 0)
+                {
+                    tbl[i] |= Filter(tbl[i]) ^ bit;
+                    UpdateContribution(ref tbl[i], m1, m2);
+                    tbl[i] ^= @in;
+                }
+                else if (Filter(tbl[i]) == bit)
+                {
+                    tbl[++end] = tbl[1];
+                    tbl[1] = tbl[0] | 1;
+                    UpdateContribution(ref tbl[i], m1, m2);
+                    tbl[i++] ^= @in;
+                    UpdateContribution(ref tbl[i], m1, m2);
+                    tbl[i] ^= @in;
+                }
+                else
+                    tbl[i--] = tbl[end--];
+        }
+
+        /// <summary>
         /// using a bit of the keystream extend the table of possible lfsr states
         /// </summary>
         /// <param name="tbl"></param>
@@ -34,6 +82,104 @@ namespace Crapto1Sharp
             }
         }
 
+        /// <summary>
+        /// recursively narrow down the search space, 4 bits of keystream at a time
+        /// </summary>
+        /// <param name="odd"></param>
+        /// <param name="oddTail"></param>
+        /// <param name="oks"></param>
+        /// <param name="even"></param>
+        /// <param name="evenTail"></param>
+        /// <param name="eks"></param>
+        /// <param name="rem"></param>
+        /// <param name="sl"></param>
+        /// <param name="@in"></param>
+        private static void Recover(Span<uint> odd, int oddTail, uint oks, Span<uint> even, int evenTail, uint eks, int rem, List<Crypto1State> sl, uint @in)
+        {
+            var o = 0;
+            var e = 0;
+
+            if (rem == -1)
+            {
+                for (e = 0; e <= evenTail; e++)
+                {
+                    even[e] = even[e] << 1 ^ EvenParity32(even[e] & LF_POLY_EVEN) ^ ((@in & 4) != 0 ? 1u : 0u);
+                    for (o = 0; o <= oddTail; o++)
+                    {
+                        sl.Add(new Crypto1State()
+                        {
+                            Even = odd[o],
+                            Odd = even[e] ^ EvenParity32(odd[o] & LF_POLY_ODD)
+                        });
+                    }
+                }
+                return;
+            }
+
+	        for (var i = 0; i < 4 && rem-- != 0; i++) {
+		        oks >>= 1;
+		        eks >>= 1;
+		        @in >>= 2;
+		        ExtendTable(odd, ref oddTail, oks & 1, LF_POLY_EVEN << 1 | 1, LF_POLY_ODD << 1, 0u);
+		        if (0 > oddTail)
+			        return;
+
+                ExtendTable(even, ref evenTail, eks & 1, LF_POLY_ODD, LF_POLY_EVEN << 1 | 1, @in & 3);
+		        if (0 > evenTail)
+			        return;
+	        }
+
+            odd.Slice(0, oddTail).Sort();
+            even.Slice(0, evenTail).Sort();
+
+            while (oddTail >= 0 && evenTail >= 0)
+                if (((odd[oddTail] ^ even[evenTail]) >> 24) == 0)
+                {
+                    oddTail = odd.Slice(0, o = oddTail).BinarySearch(odd[oddTail] & 0xff000000);
+                    evenTail = even.Slice(0, e = evenTail).BinarySearch(even[evenTail] & 0xff000000);
+                    Recover(odd.Slice(oddTail--), o, oks, even.Slice(evenTail--), e, eks, rem, sl, @in);
+                }
+                else if (odd[oddTail] > even[evenTail])
+                    oddTail = odd.Slice(0, oddTail).BinarySearch(odd[oddTail] & 0xff000000) - 1;
+                else
+                    evenTail = even.Slice(0, evenTail).BinarySearch(even[evenTail] & 0xff000000) - 1;
+        }
+
+        public static List<Crypto1State> LfsrRecovery32(uint ks2, uint @in)
+        {
+            var oks = 0u;
+            var eks = 0u;
+
+            for (var i = 31; i >= 0; i -= 2)
+                oks = oks << 1 | ks2.BeBit(i);
+            for (var i = 30; i >= 0; i -= 2)
+                eks = eks << 1 | ks2.BeBit(i);
+
+            var odd = new uint[sizeof(uint) << 21];
+            var even = new uint[sizeof(uint) << 21];
+            var statelist = new List<Crypto1State>();
+            var oddTail = 0;
+            var evenTail = 0;
+
+            for (var i = 1u << 20; (int)i >= 0; --i)
+            {
+                if (Filter(i) == (oks & 1))
+                    odd[++oddTail] = i;
+                if (Filter(i) == (eks & 1))
+                    even[++evenTail] = i;
+            }
+
+            for (var i = 0; i < 4; i++)
+            {
+                ExtendTableSimple(odd, ref oddTail, (oks >>= 1) & 1);
+                ExtendTableSimple(even, ref evenTail, (eks >>= 1) & 1);
+            }
+
+            @in = (@in >> 16 & 0xff) | (@in << 16) | (@in & 0xff00);
+            Recover(odd, oddTail, oks, even, evenTail, eks, 11, statelist, @in << 1);
+
+            return statelist;
+        }
 
         static readonly uint[] S1 = {
             0x62141, 0x310A0, 0x18850, 0x0C428, 0x06214, 0x0310A,
