@@ -43,6 +43,9 @@ namespace Crapto1Sharp
             }
         }
 
+        public Crypto1(Crypto1State state)
+        { _state = state; }
+
         public byte Crypto1Bit(byte _in = 0, bool isEncrypted = false)
         {
             uint feedin;

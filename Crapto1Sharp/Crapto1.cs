@@ -1,0 +1,147 @@
+﻿using Crapto1Sharp.Extensions;
+using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace Crapto1Sharp
+{
+    public class Crapto1 : Crypto1
+    {
+        /// <summary>
+        /// using a bit of the keystream extend the table of possible lfsr states
+        /// </summary>
+        /// <param name="tbl"></param>
+        /// <param name="end"></param>
+        /// <param name="bit"></param>
+        private static void ExtendTableSimple(uint[] tbl, ref int end, uint bit)
+        {
+            var i = 0;
+            for (tbl[i] <<= 1; i <= end; tbl[++i] <<= 1)
+            {
+                if ((Filter(tbl[i]) ^ Filter(tbl[i] | 1)) != 0)
+                {   // replace
+                    tbl[i] |= Filter(tbl[i]) ^ bit;
+                }
+                else if (Filter(tbl[i]) == bit)
+                {       // insert
+                    tbl[++end] = tbl[++i];
+                    tbl[i] = tbl[i - 1] | 1;
+                }
+                else
+                {                               // drop
+                    tbl[i--] = tbl[end--];
+                }
+            }
+        }
+
+
+        static readonly uint[] S1 = {
+            0x62141, 0x310A0, 0x18850, 0x0C428, 0x06214, 0x0310A,
+            0x85E30, 0xC69AD, 0x634D6, 0xB5CDE, 0xDE8DA, 0x6F46D,
+            0xB3C83, 0x59E41, 0xA8995,  0xD027F, 0x6813F, 0x3409F, 0x9E6FA };
+
+        static readonly uint[] S2 = {
+            0x3A557B00, 0x5D2ABD80, 0x2E955EC0, 0x174AAF60, 0x0BA557B0,
+            0x05D2ABD8, 0x0449DE68, 0x048464B0, 0x42423258, 0x278192A8,
+            0x156042D0, 0x0AB02168, 0x43F89B30, 0x61FC4D98, 0x765EAD48,
+            0x7D8FDD20, 0x7EC7EE90, 0x7F63F748, 0x79117020 };
+        static readonly uint[] T1 = {
+            0x4F37D, 0x279BE, 0x97A6A, 0x4BD35, 0x25E9A, 0x12F4D, 0x097A6, 0x80D66,
+            0xC4006, 0x62003, 0xB56B4, 0x5AB5A, 0xA9318, 0xD0F39, 0x6879C, 0xB057B,
+            0x582BD, 0x2C15E, 0x160AF, 0x8F6E2, 0xC3DC4, 0xE5857, 0x72C2B, 0x39615,
+            0x98DBF, 0xC806A, 0xE0680, 0x70340, 0x381A0, 0x98665, 0x4C332, 0xA272C };
+        static readonly uint[] T2 = {
+            0x3C88B810, 0x5E445C08, 0x2982A580, 0x14C152C0, 0x4A60A960,
+            0x253054B0, 0x52982A58, 0x2FEC9EA8, 0x1156C4D0, 0x08AB6268,
+            0x42F53AB0, 0x217A9D58, 0x161DC528, 0x0DAE6910, 0x46D73488,
+            0x25CB11C0, 0x52E588E0, 0x6972C470, 0x34B96238, 0x5CFC3A98,
+            0x28DE96C8, 0x12CFC0E0, 0x4967E070, 0x64B3F038, 0x74F97398,
+            0x7CDC3248, 0x38CE92A0, 0x1C674950, 0x0E33A4A8, 0x01B959D0,
+            0x40DCACE8, 0x26CEDDF0 };
+
+        static readonly uint[] C1 = { 0x846B5, 0x4235A, 0x211AD };
+        static readonly uint[] C2 = { 0x1A822E0, 0x21A822E0, 0x21A822E0 };
+
+        /// <summary>
+        /// Reverse 64 bits of keystream into possible cipher states
+        /// Variation mentioned in the paper. Somewhat optimized version
+        /// </summary>
+        /// <param name="ks2"></param>
+        /// <param name="ks3"></param>
+        /// <returns></returns>
+        public static List<Crypto1State> LfsrRecovery64(uint ks2, uint ks3)
+        {
+            var oks = new byte[32];
+            var eks = new byte[32];
+            var hi = new byte[32];
+            var low = 0u;
+            var win = 0u;
+            var table = new uint[1 << 16];
+            var statelist = new List<Crypto1State>();
+
+            for (var i = 30; i >= 0; i -= 2)
+            {
+                oks[i >> 1] = ks2.BeBit(i);
+                oks[16 + (i >> 1)] = ks3.BeBit(i);
+            }
+            for (var i = 31; i >= 0; i -= 2)
+            {
+                eks[i >> 1] = ks2.BeBit(i);
+                eks[16 + (i >> 1)] = ks3.BeBit(i);
+            }
+
+
+            for (var i = 0xfffffu; (int)i >= 0; i--)
+            {
+                if (Filter(i) != oks[0])
+                    continue;
+
+                var tail = 0;
+                table[tail] = i;
+
+                for (var j = 1; tail >= 0 && j < 29; j++)
+                    ExtendTableSimple(table, ref tail, oks[j]);
+                if (tail < 0)
+                    continue;
+
+                for (var j = 0; j < 19; ++j)
+                    low = low << 1 | EvenParity32(i & S1[j]);
+                for (var j = 0; j < 32; ++j)
+                    hi[j] = EvenParity32(i & T1[j]);
+
+
+                for (; tail >= 0; --tail)
+                {
+                    for (var j = 0; j < 3; j++)
+                    {
+                        table[tail] = table[tail] << 1;
+                        table[tail] |= EvenParity32((i & C1[j]) ^ (table[tail] & C2[j]));
+                        if (Filter(table[tail]) != oks[29 + j])
+                            goto continue2;
+                    }
+
+                    for (var j = 0; j < 19; j++)
+                        win = win << 1 | EvenParity32(table[tail] & S2[j]);
+
+                    win ^= low;
+                    for (var j = 0; j < 32; ++j)
+                    {
+                        win = win << 1 ^ hi[j] ^ EvenParity32(table[tail] & T2[j]);
+                        if (Filter(win) != eks[j])
+                            goto continue2;
+                    }
+
+                    table[tail] = table[tail] << 1 | EvenParity32(LF_POLY_EVEN & table[tail]);
+                    var s = new Crypto1State()
+                    {
+                        Odd = table[tail] ^ EvenParity32(LF_POLY_ODD & win),
+                        Even = win
+                    };
+                    statelist.Add(s);
+                continue2:;
+                }
+            }
+            return statelist;
+        }
+    }
+}
