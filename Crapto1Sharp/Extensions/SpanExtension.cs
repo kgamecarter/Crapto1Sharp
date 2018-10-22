@@ -14,7 +14,7 @@ namespace Crapto1Sharp.Extensions
         /// <param name="span"></param>
         public static void Sort<T>(this Span<T> span)
         {
-            if (span.IsEmpty)
+            if (span.Length <= 1)
                 return;
             var it = 0;
             var rit = span.Length - 1;
