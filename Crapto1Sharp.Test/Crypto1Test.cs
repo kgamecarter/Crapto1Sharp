@@ -40,8 +40,7 @@ namespace Crapto1Sharp.Test
             var crypto1 = new Crypto1(key);
             Assert.AreEqual(crypto1.Lfsr, key);
         }
-
-
+        
         [TestMethod]
         [DataRow(0xd73A52b491AAuL)]
         [DataRow(0x9D29AE25242AuL)]
