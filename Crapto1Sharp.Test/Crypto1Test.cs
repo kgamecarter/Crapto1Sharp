@@ -6,27 +6,16 @@ namespace Crapto1Sharp.Test
     public class Crypto1Test
     {
         [TestMethod]
-        public void Crypto1State()
+        [DataRow(0xd73A52b491AAuL, 0x009E831Fu, 0x00F236A0u)]
+        [DataRow(0x9D29AE25242AuL, 0x0056f22Eu, 0x00E84C40u)]
+        [DataRow(0x1FA3E73CAC0AuL, 0x00CBB67Cu, 0x00E8D640u)]
+        [DataRow(0xD1C9DB532E82uL, 0x0015D8E9u, 0x00B9BB40u)]
+        [DataRow(0x239186C46E88uL, 0x00A191E5u, 0x008A4550u)]
+        public void Crypto1State(ulong key, uint odd, uint even)
         {
-            var crypto1 = new Crypto1(0xd73A52b491AAuL);
-            Assert.AreEqual(crypto1.State.Odd, 0x009E831Fu);
-            Assert.AreEqual(crypto1.State.Even, 0x00F236A0u);
-
-            crypto1 = new Crypto1(0x9D29AE25242AuL);
-            Assert.AreEqual(crypto1.State.Odd, 0x0056f22Eu);
-            Assert.AreEqual(crypto1.State.Even, 0x00E84C40u);
-
-            crypto1 = new Crypto1(0x1FA3E73CAC0AuL);
-            Assert.AreEqual(crypto1.State.Odd, 0x00CBB67Cu);
-            Assert.AreEqual(crypto1.State.Even, 0x00E8D640u);
-
-            crypto1 = new Crypto1(0xD1C9DB532E82uL);
-            Assert.AreEqual(crypto1.State.Odd, 0x0015D8E9u);
-            Assert.AreEqual(crypto1.State.Even, 0x00B9BB40u);
-
-            crypto1 = new Crypto1(0x239186C46E88uL);
-            Assert.AreEqual(crypto1.State.Odd, 0x00A191E5u);
-            Assert.AreEqual(crypto1.State.Even, 0x008A4550u);
+            var crypto1 = new Crypto1(key);
+            Assert.AreEqual(crypto1.State.Odd, odd);
+            Assert.AreEqual(crypto1.State.Even, even);
         }
 
         [TestMethod]
