@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard1.1;net45</TargetFrameworks>
+    <TargetFrameworks>netstandard1.1;netstandard2.0;net45</TargetFrameworks>
     <Authors>kgame</Authors>
     <Company>kgame SOFT</Company>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
@@ -10,12 +10,18 @@
     <PackageProjectUrl>https://github.com/kgamecarter/Crapto1Sharp</PackageProjectUrl>
     <RepositoryUrl>https://github.com/kgamecarter/Crapto1Sharp</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <Version>1.0.3</Version>
+    <Version>1.1.0</Version>
     <PackageTags>mifare crypto1 crapto1</PackageTags>
     <DefineConstants Condition=" '$(TargetFramework)' == 'net45' ">NET45</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard1.1'">
+    <PackageReference Include="System.Memory">
+      <Version>4.5.1</Version>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
     <PackageReference Include="System.Memory">
       <Version>4.5.1</Version>
     </PackageReference>
