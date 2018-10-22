@@ -9,6 +9,9 @@ namespace Crapto1Sharp
 {
     public class Crapto1 : Crypto1
     {
+        public Crapto1()
+        { }
+
         public Crapto1(Crypto1State state) : base(state)
         { }
 
