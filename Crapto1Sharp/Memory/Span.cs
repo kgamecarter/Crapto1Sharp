@@ -5,7 +5,7 @@ using System.Text;
 namespace Crapto1Sharp.Memory
 {
 #if NET45
-    public struct Span<T>
+    internal struct Span<T>
     {
         public T[] Array { get; set; }
 

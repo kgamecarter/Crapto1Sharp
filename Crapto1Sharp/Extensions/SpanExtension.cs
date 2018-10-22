@@ -7,7 +7,7 @@ using Crapto1Sharp.Memory;
 
 namespace Crapto1Sharp.Extensions
 {
-    public static class SpanExtension
+    internal static class SpanExtension
     {
         // wait Span.Sort() implement https://github.com/dotnet/corefx/issues/15329
         /// <summary>
