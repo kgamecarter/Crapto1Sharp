@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;net461</TargetFrameworks>
+    <TargetFrameworks>netstandard1.1;net45</TargetFrameworks>
     <Authors>kgame</Authors>
     <Company>kgame SOFT</Company>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
@@ -12,18 +12,13 @@
     <RepositoryType>git</RepositoryType>
     <Version>1.0.3</Version>
     <PackageTags>mifare crypto1 crapto1</PackageTags>
+    <DefineConstants Condition=" '$(TargetFramework)' == 'net45' ">NET45</DefineConstants>
   </PropertyGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard1.1'">
     <PackageReference Include="System.Memory">
       <Version>4.5.1</Version>
     </PackageReference>
   </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == 'net461'">
-    <PackageReference Include="System.Memory">
-      <Version>4.5.1</Version>
-    </PackageReference>
-  </ItemGroup>
-
+  
 </Project>

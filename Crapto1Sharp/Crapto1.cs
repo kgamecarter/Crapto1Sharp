@@ -1,7 +1,9 @@
 ﻿using Crapto1Sharp.Extensions;
 using System;
 using System.Collections.Generic;
-using System.Text;
+#if NET45
+using Crapto1Sharp.Memory;
+#endif
 
 namespace Crapto1Sharp
 {
