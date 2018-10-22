@@ -9,6 +9,55 @@ namespace Crapto1Sharp
 {
     public class Crapto1 : Crypto1
     {
+        public Crapto1(Crypto1State state) : base(state)
+        { }
+
+        /// <summary>
+        /// Rollback the shift register in order to get previous states
+        /// </summary>
+        /// <param name="in"></param>
+        /// <param name="isEncrypted"></param>
+        /// <returns></returns>
+        public byte LfsrRollbackBit(byte @in, bool isEncrypted)
+        {
+	        uint @out;
+	        byte ret;
+
+	        _state.Odd &= 0xffffff;
+            var t = _state.Odd;
+            _state.Odd = _state.Even;
+            _state.Even = t;
+
+	        @out = _state.Even & 1;
+	        @out ^= LF_POLY_EVEN & (_state.Even >>= 1);
+	        @out ^= LF_POLY_ODD & _state.Odd;
+	        @out ^= @in != 0 ? 1u : 0u;
+	        @out ^= (ret = Filter(_state.Odd)) & (isEncrypted ? 1u : 0u);
+
+            _state.Even |= (uint)EvenParity32(@out) << 23;
+	        return ret;
+        }
+
+        public byte LfsrRollbackByte(byte @in, bool isEncrypted)
+        {
+            byte ret = 0;
+
+            for (var i = 7; i >= 0; --i)
+                ret |= (byte)(LfsrRollbackBit(@in.Bit(i), isEncrypted) << i);
+
+            return ret;
+        }
+
+        public uint LfsrRollbackWord(uint @in, bool isEncrypted)
+        {
+            uint ret = 0;
+
+            for (var i = 31; i >= 0; --i)
+                ret |= (uint)LfsrRollbackBit(@in.BeBit(i), isEncrypted) << (i ^ 24);
+
+            return ret;
+        }
+
         /// <summary>
         /// helper, calculates the partial linear feedback contributions and puts in MSB
         /// </summary>
