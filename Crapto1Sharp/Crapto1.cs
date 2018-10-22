@@ -291,5 +291,27 @@ namespace Crapto1Sharp
             }
             return statelist;
         }
+        
+        private static ushort[] dist;
+
+        /// <summary>
+        /// x,y valid tag nonces, then prng_successor(x, nonce_distance(x, y)) = y
+        /// </summary>
+        /// <param name="from"></param>
+        /// <param name="to"></param>
+        /// <returns></returns>
+        public static int NonceDistance(uint from, uint to)
+        {
+            if (dist == null)
+            {
+                dist = new ushort[2 << 16];
+                for (ushort x = 1, i = 1; i != 0; ++i)
+                {
+                    dist[(x & 0xff) << 8 | x >> 8] = i;
+                    x = (ushort)(x >> 1 | (x ^ x >> 2 ^ x >> 3 ^ x >> 5) << 15);
+                }
+            }
+            return (65535 + dist[to >> 16] - dist[from >> 16]) % 65535;
+        }
     }
 }
