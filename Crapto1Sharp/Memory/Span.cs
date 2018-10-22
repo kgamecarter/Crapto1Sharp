@@ -5,34 +5,34 @@ using System.Text;
 namespace Crapto1Sharp.Memory
 {
 #if NET45
-    internal struct Span<T>
+    internal readonly ref struct Span<T>
     {
-        public T[] Array { get; set; }
+        public T[] Array { get; }
 
-        public int Offset { get; set; }
+        public int Offset { get; }
 
-        public int Length { get; set; }
+        public int Length { get; }
 
         public ref T this[int key] => ref Array[key + Offset];
 
+        public Span(T[] array) : this(array, 0, array.Length)
+        { }
+
+        public Span(T[] array, int offset, int length)
+        {
+            Array = array;
+            Offset = offset;
+            Length = length;
+        }
+
         public Span<T> Slice(int start)
         {
-            return new Span<T>()
-            {
-                Array = Array,
-                Offset = Offset + start,
-                Length = Length - start
-            };
+            return new Span<T>(Array, Offset + start, Length - start);
         }
 
         public Span<T> Slice(int start, int length)
         {
-            return new Span<T>()
-            {
-                Array = Array,
-                Offset = Offset + start,
-                Length = length
-            };
+            return new Span<T>(Array, Offset + start, length);
         }
 
         public int BinarySearch(T value)
@@ -47,12 +47,7 @@ namespace Crapto1Sharp.Memory
 
         public static implicit operator Span<T>(T[] array)
         {
-            return new Span<T>()
-            {
-                Array = array,
-                Offset = 0,
-                Length = array.Length
-            };
+            return new Span<T>(array);
         }
     }
 #endif

@@ -13,6 +13,7 @@
     <Version>1.1.0</Version>
     <PackageTags>mifare crypto1 crapto1</PackageTags>
     <DefineConstants Condition=" '$(TargetFramework)' == 'net45' ">NET45</DefineConstants>
+    <LangVersion>7.3</LangVersion>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard1.1'">
