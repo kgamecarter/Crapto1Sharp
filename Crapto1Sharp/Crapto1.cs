@@ -18,7 +18,7 @@ namespace Crapto1Sharp
         /// <param name="in"></param>
         /// <param name="isEncrypted"></param>
         /// <returns></returns>
-        public byte LfsrRollbackBit(byte @in, bool isEncrypted)
+        public byte LfsrRollbackBit(byte @in = 0, bool isEncrypted = false)
         {
 	        uint @out;
 	        byte ret;
@@ -38,7 +38,7 @@ namespace Crapto1Sharp
 	        return ret;
         }
 
-        public byte LfsrRollbackByte(byte @in, bool isEncrypted)
+        public byte LfsrRollbackByte(byte @in = 0, bool isEncrypted = false)
         {
             byte ret = 0;
 
@@ -48,7 +48,7 @@ namespace Crapto1Sharp
             return ret;
         }
 
-        public uint LfsrRollbackWord(uint @in, bool isEncrypted)
+        public uint LfsrRollbackWord(uint @in = 0, bool isEncrypted = false)
         {
             uint ret = 0;
 
