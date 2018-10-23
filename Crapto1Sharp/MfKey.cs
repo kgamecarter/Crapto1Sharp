@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace Crapto1Sharp
@@ -33,6 +34,89 @@ namespace Crapto1Sharp
                 crapto1.Crypto1Word(uid ^ nt);
                 crapto1.Crypto1Word(nr1, true);
                 if (ar1 == (crapto1.Crypto1Word() ^ p64))
+                {
+                    outKey = key;
+                    counter++;
+                    if (counter == 20)
+                        break;
+                }
+            }
+            return counter == 1 ? outKey : ulong.MaxValue;
+        }
+
+        /// <summary>
+        /// recover key from many different reader responses on same tag challenge
+        /// </summary>
+        /// <param name="uid"></param>
+        /// <param name="nt"></param>
+        /// <param name="nonces"></param>
+        /// <returns></returns>
+        public static ulong MfKey32(uint uid, uint nt, IEnumerable<Nonce> nonces)
+        {
+            var nonce = nonces.First();
+            nonces = nonces.Skip(1);
+            var p64 = Crypto1.PrngSuccessor(nt, 64);
+            byte counter = 0;
+            var list = Crapto1.LfsrRecovery32(nonce.Ar ^ p64, 0);
+            var crapto1 = new Crapto1();
+            var outKey = 0uL;
+            foreach (var s in list)
+            {
+                crapto1.State = s;
+                crapto1.LfsrRollbackWord();
+                crapto1.LfsrRollbackWord(nonce.Nr, true);
+                crapto1.LfsrRollbackWord(uid ^ nt);
+                var key = crapto1.Lfsr;
+                var allPass = nonces.All(n =>
+                {
+                    var crypto1 = new Crypto1(key);
+                    crypto1.Crypto1Word(uid ^ nt);
+                    crypto1.Crypto1Word(n.Nr, true);
+                    return n.Ar == (crapto1.Crypto1Word() ^ p64);
+                });
+                if (allPass)
+                {
+                    outKey = key;
+                    counter++;
+                    if (counter == 20)
+                        break;
+                }
+            }
+            return counter == 1 ? outKey : ulong.MaxValue;
+        }
+
+        /// <summary>
+        /// recover key from many reader responses on many different tag challenges
+        /// </summary>
+        /// <param name="uid"></param>
+        /// <param name="nt"></param>
+        /// <param name="nonces"></param>
+        /// <returns></returns>
+        public static ulong MfKey32(uint uid, IEnumerable<Nonce> nonces)
+        {
+            var nonce = nonces.First();
+            nonces = nonces.Skip(1);
+            var p640 = Crypto1.PrngSuccessor(nonce.Nt, 64);
+            byte counter = 0;
+            var list = Crapto1.LfsrRecovery32(nonce.Ar ^ p640, 0);
+            var crapto1 = new Crapto1();
+            var outKey = 0uL;
+            foreach (var s in list)
+            {
+                crapto1.State = s;
+                crapto1.LfsrRollbackWord();
+                crapto1.LfsrRollbackWord(nonce.Nr, true);
+                crapto1.LfsrRollbackWord(uid ^ nonce.Nt);
+                var key = crapto1.Lfsr;
+                var allPass = nonces.All(n =>
+                {
+                    var crypto1 = new Crypto1(key);
+                    crypto1.Crypto1Word(uid ^ n.Nt);
+                    crypto1.Crypto1Word(n.Nr, true);
+                    var p641 = Crypto1.PrngSuccessor(n.Nt, 64);
+                    return n.Ar == (crapto1.Crypto1Word() ^ p641);
+                });
+                if (allPass)
                 {
                     outKey = key;
                     counter++;
