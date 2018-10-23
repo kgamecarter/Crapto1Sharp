@@ -10,7 +10,7 @@
     <PackageProjectUrl>https://github.com/kgamecarter/Crapto1Sharp</PackageProjectUrl>
     <RepositoryUrl>https://github.com/kgamecarter/Crapto1Sharp</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <Version>1.1.0</Version>
+    <Version>1.2.0</Version>
     <PackageTags>mifare crypto1 crapto1</PackageTags>
     <DefineConstants Condition=" '$(TargetFramework)' == 'net45' ">NET45</DefineConstants>
     <LangVersion>7.3</LangVersion>
