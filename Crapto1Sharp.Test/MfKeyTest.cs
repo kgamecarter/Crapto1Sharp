@@ -33,7 +33,7 @@ namespace Crapto1Sharp.Test
             var ar1 = p64 ^ crypto1.Crypto1Word();
 
             var key = MfKey.MfKey32(uid, nt, nr0, ar0, nr1, ar1);
-            Assert.AreEqual(key, expectedKey);
+            Assert.AreEqual(expectedKey, key);
         }
 
         [TestMethod]
@@ -42,7 +42,7 @@ namespace Crapto1Sharp.Test
         public void MfKey64(uint uid, uint nt, uint nr, uint ar, uint at, ulong expectedKey)
         {
             var key = MfKey.MfKey64(uid, nt, nr, ar, at);
-            Assert.AreEqual(key, expectedKey);
+            Assert.AreEqual(expectedKey, key);
         }
     }
 }

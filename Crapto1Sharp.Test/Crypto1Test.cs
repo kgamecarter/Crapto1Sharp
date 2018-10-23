@@ -14,8 +14,8 @@ namespace Crapto1Sharp.Test
         public void Crypto1State(ulong key, uint odd, uint even)
         {
             var crypto1 = new Crypto1(key);
-            Assert.AreEqual(crypto1.State.Odd, odd);
-            Assert.AreEqual(crypto1.State.Even, even);
+            Assert.AreEqual(odd, crypto1.State.Odd);
+            Assert.AreEqual(even, crypto1.State.Even);
         }
 
         [TestMethod]
@@ -27,7 +27,7 @@ namespace Crapto1Sharp.Test
         public void Lfsr(ulong key)
         {
             var crypto1 = new Crypto1(key);
-            Assert.AreEqual(crypto1.Lfsr, key);
+            Assert.AreEqual(key, crypto1.Lfsr);
         }
         
         [TestMethod]
@@ -39,7 +39,7 @@ namespace Crapto1Sharp.Test
         public void PeekCrypto1Bit(ulong key)
         {
             var crypto1 = new Crypto1(key);
-            Assert.AreEqual(crypto1.PeekCrypto1Bit(), Crypto1.Filter(crypto1.State.Odd));
+            Assert.AreEqual(Crypto1.Filter(crypto1.State.Odd), crypto1.PeekCrypto1Bit());
         }
 
         [TestMethod]
@@ -54,7 +54,7 @@ namespace Crapto1Sharp.Test
                     count += v & 1;
                     v >>= 1;
                 }
-                Assert.AreEqual(Crypto1.OddParity8((byte)i), (byte)(count % 2));
+                Assert.AreEqual((byte)(count % 2), Crypto1.OddParity8((byte)i));
             }
         }
 
@@ -70,7 +70,7 @@ namespace Crapto1Sharp.Test
                     count += v & 1;
                     v >>= 1;
                 }
-                Assert.AreEqual(Crypto1.EvenParity8((byte)i), (byte)(count % 2));
+                Assert.AreEqual((byte)(count % 2), Crypto1.EvenParity8((byte)i));
             }
         }
     }
