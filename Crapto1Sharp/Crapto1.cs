@@ -98,8 +98,8 @@ namespace Crapto1Sharp
                 }
                 else if (Filter(tbl[i]) == bit)
                 {
-                    tbl[++end] = tbl[1];
-                    tbl[1] = tbl[0] | 1;
+                    tbl[++end] = tbl[i + 1];
+                    tbl[i + 1] = tbl[i] | 1;
                     UpdateContribution(ref tbl[i], m1, m2);
                     tbl[i++] ^= @in;
                     UpdateContribution(ref tbl[i], m1, m2);
