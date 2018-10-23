@@ -212,7 +212,7 @@ namespace Crapto1Sharp
 
             var odd = new uint[sizeof(uint) << 21];
             var even = new uint[sizeof(uint) << 21];
-            var statelist = new List<Crypto1State>();
+            var statelist = new List<Crypto1State>(1 << 18);
             var oddTail = 0;
             var evenTail = 0;
 

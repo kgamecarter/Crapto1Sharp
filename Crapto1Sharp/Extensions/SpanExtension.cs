@@ -61,8 +61,8 @@ namespace Crapto1Sharp.Extensions
             int start = 0, stop = span.Length - 1, mid;
             uint val = span[stop] & 0xff000000;
             while (start != stop)
-                if (span[mid = (stop - start) >> 1] > val)
-                    stop = mid;
+                if (span[start + (mid = (stop - start) >> 1)] > val)
+                    stop = start + mid;
                 else
                     start += mid + 1;
             return start;
