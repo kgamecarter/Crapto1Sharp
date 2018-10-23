@@ -189,14 +189,14 @@ namespace Crapto1Sharp
             while (oddTail >= 0 && evenTail >= 0)
                 if (((odd[oddTail] ^ even[evenTail]) >> 24) == 0)
                 {
-                    oddTail = odd.Slice(0, o = oddTail).BinarySearch(odd[oddTail] & 0xff000000);
-                    evenTail = even.Slice(0, e = evenTail).BinarySearch(even[evenTail] & 0xff000000);
+                    oddTail = odd.Slice(0, (o = oddTail) + 1).BinarySearch();
+                    evenTail = even.Slice(0, (e = evenTail) + 1).BinarySearch();
                     Recover(odd.Slice(oddTail--), o, oks, even.Slice(evenTail--), e, eks, rem, sl, @in);
                 }
                 else if (odd[oddTail] > even[evenTail])
-                    oddTail = odd.Slice(0, oddTail + 1).BinarySearch(odd[oddTail] & 0xff000000) - 1;
+                    oddTail = odd.Slice(0, oddTail + 1).BinarySearch() - 1;
                 else
-                    evenTail = even.Slice(0, evenTail + 1).BinarySearch(even[evenTail] & 0xff000000) - 1;
+                    evenTail = even.Slice(0, evenTail + 1).BinarySearch() - 1;
         }
 
         public static List<Crypto1State> LfsrRecovery32(uint ks2, uint @in)
