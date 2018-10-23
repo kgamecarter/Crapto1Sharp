@@ -191,7 +191,8 @@ namespace Crapto1Sharp
                 {
                     oddTail = odd.Slice(0, (o = oddTail) + 1).BinarySearch();
                     evenTail = even.Slice(0, (e = evenTail) + 1).BinarySearch();
-                    Recover(odd.Slice(oddTail--), o, oks, even.Slice(evenTail--), e, eks, rem, sl, @in);
+                    Recover(odd.Slice(oddTail), o - oddTail, oks, even.Slice(evenTail), e - evenTail, eks, rem, sl, @in);
+                    oddTail--; evenTail--;
                 }
                 else if (odd[oddTail] > even[evenTail])
                     oddTail = odd.Slice(0, oddTail + 1).BinarySearch() - 1;
