@@ -1,4 +1,5 @@
 ﻿using Crapto1Sharp.Extensions;
+using System.Runtime.CompilerServices;
 
 namespace Crapto1Sharp
 {
@@ -64,6 +65,7 @@ namespace Crapto1Sharp
             return ret;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public byte Crypto1Byte(byte @in = 0, bool isEncrypted = false)
         {
             byte ret = 0;
@@ -74,6 +76,7 @@ namespace Crapto1Sharp
             return ret;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public uint Crypto1Word(uint @in = 0, bool isEncrypted = false)
         {
             uint ret = 0;
@@ -84,6 +87,7 @@ namespace Crapto1Sharp
             return ret;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public byte PeekCrypto1Bit()
         {
             return Filter(_state.Odd);
@@ -102,7 +106,8 @@ namespace Crapto1Sharp
                 parirty[i] ^= PeekCrypto1Bit();
             }
         }
-        
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static byte Filter(uint x)
         {
             uint f;
@@ -133,10 +138,13 @@ namespace Crapto1Sharp
             1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1
         };
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static byte OddParity8(byte x) => OddByteParity[x];
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static byte EvenParity8(byte x) => (byte)(OddByteParity[x] ^ 1);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static byte EvenParity32(uint x)
         {
             x ^= x >> 16;
@@ -144,6 +152,7 @@ namespace Crapto1Sharp
             return EvenParity8((byte)x);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static uint PrngSuccessor(uint x, int n)
         {
             x = x.SwapEndian();

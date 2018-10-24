@@ -1,31 +1,37 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace Crapto1Sharp.Extensions
 {
     public static class UIntExtension
     {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static byte Bit(this byte v, int n)
         {
             return (byte)(v >> n & 1);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static byte Bit(this uint v, int n)
         {
             return (byte)(v >> n & 1);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static byte Bit(this ulong v, int n)
         {
             return (byte)(v >> n & 1);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static byte BeBit(this uint v, int n)
         {
             return v.Bit(n ^ 24);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static uint SwapEndian(this uint x)
         {
             x = (x >> 8 & 0xff00ff) | (x & 0xff00ff) << 8;

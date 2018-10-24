@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace Crapto1Sharp.Memory
@@ -13,7 +14,14 @@ namespace Crapto1Sharp.Memory
 
         public int Length { get; }
 
-        public ref T this[int key] => ref Array[key + Offset];
+        public ref T this[int key]
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get
+            {
+                return ref Array[key + Offset];
+            }
+        }
 
         public Span(T[] array) : this(array, 0, array.Length)
         { }

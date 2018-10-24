@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Text;
 #if NET45
 using Crapto1Sharp.Memory;
@@ -24,6 +25,7 @@ namespace Crapto1Sharp.Extensions
         }
 #endif
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int BinarySearch(this Span<uint> span)
         {
             int start = 0, stop = span.Length - 1, mid;

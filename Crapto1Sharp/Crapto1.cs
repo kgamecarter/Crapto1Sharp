@@ -1,6 +1,7 @@
 ﻿using Crapto1Sharp.Extensions;
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 #if NET45
 using Crapto1Sharp.Memory;
 #endif
@@ -41,6 +42,7 @@ namespace Crapto1Sharp
 	        return ret;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public byte LfsrRollbackByte(byte @in = 0, bool isEncrypted = false)
         {
             byte ret = 0;
@@ -51,6 +53,7 @@ namespace Crapto1Sharp
             return ret;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public uint LfsrRollbackWord(uint @in = 0, bool isEncrypted = false)
         {
             uint ret = 0;
@@ -67,6 +70,7 @@ namespace Crapto1Sharp
         /// <param name="item"></param>
         /// <param name="mask1"></param>
         /// <param name="mask2"></param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void UpdateContribution(ref uint item, uint mask1, uint mask2)
         {
             uint p = item >> 25;
@@ -85,6 +89,7 @@ namespace Crapto1Sharp
         /// <param name="m1"></param>
         /// <param name="m2"></param>
         /// <param name="in"></param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void ExtendTable(Span<uint> tbl, ref int end, uint bit, uint m1, uint m2, uint @in)
         {
             @in <<= 24;
@@ -115,6 +120,7 @@ namespace Crapto1Sharp
         /// <param name="tbl"></param>
         /// <param name="end"></param>
         /// <param name="bit"></param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void ExtendTableSimple(uint[] tbl, ref int end, uint bit)
         {
             var i = 0;
