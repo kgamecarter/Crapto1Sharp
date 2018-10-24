@@ -20,10 +20,9 @@ namespace Crapto1Sharp
         public static ulong MfKey32(uint uid, uint nt, uint nr0, uint ar0, uint nr1, uint ar1)
         {
             var p64 = Crypto1.PrngSuccessor(nt, 64);
-            byte counter = 0;
             var list = Crapto1.LfsrRecovery32(ar0 ^ p64, 0);
             var crapto1 = new Crapto1();
-            var outKey = 0uL;
+            var outKey = ulong.MaxValue;
             foreach (var s in list)
             {
                 crapto1.State = s;
@@ -35,13 +34,12 @@ namespace Crapto1Sharp
                 crapto1.Crypto1Word(nr1, true);
                 if (ar1 == (crapto1.Crypto1Word() ^ p64))
                 {
+                    if (outKey != ulong.MaxValue)
+                        return ulong.MaxValue;
                     outKey = key;
-                    counter++;
-                    if (counter == 20)
-                        break;
                 }
             }
-            return counter == 1 ? outKey : ulong.MaxValue;
+            return outKey;
         }
 
         /// <summary>
@@ -56,42 +54,50 @@ namespace Crapto1Sharp
             var nonce = nonces.First();
             nonces = nonces.Skip(1);
             var p64 = Crypto1.PrngSuccessor(nt, 64);
-            byte counter = 0;
             var list = Crapto1.LfsrRecovery32(nonce.Ar ^ p64, 0);
             var crapto1 = new Crapto1();
-            var outKey = 0uL;
+            var crypto1 = new Crypto1();
+            var outKey = ulong.MaxValue;
             foreach (var s in list)
             {
                 crapto1.State = s;
                 crapto1.LfsrRollbackWord();
                 crapto1.LfsrRollbackWord(nonce.Nr, true);
                 crapto1.LfsrRollbackWord(uid ^ nt);
-                var key = crapto1.Lfsr;
                 var allPass = nonces.All(n =>
                 {
-                    var crypto1 = new Crypto1(key);
+                    crypto1.State = crapto1.State;
                     crypto1.Crypto1Word(uid ^ nt);
                     crypto1.Crypto1Word(n.Nr, true);
                     return n.Ar == (crypto1.Crypto1Word() ^ p64);
                 });
                 if (allPass)
                 {
-                    outKey = key;
-                    counter++;
-                    if (counter == 20)
-                        break;
+                    if (outKey != ulong.MaxValue)
+                        return ulong.MaxValue;
+                    outKey = crapto1.Lfsr;
                 }
             }
-            return counter == 1 ? outKey : ulong.MaxValue;
+            return outKey;
         }
 
+        /// <summary>
+        /// recover key from two reader responses on two different tag challenges
+        /// </summary>
+        /// <param name="uid"></param>
+        /// <param name="nt0"></param>
+        /// <param name="nr0"></param>
+        /// <param name="ar0"></param>
+        /// <param name="nt1"></param>
+        /// <param name="nr1"></param>
+        /// <param name="ar1"></param>
+        /// <returns></returns>
         public static ulong MfKey32(uint uid, uint nt0, uint nr0, uint ar0, uint nt1, uint nr1, uint ar1)
         {
             var p640 = Crypto1.PrngSuccessor(nt0, 64);
-            byte counter = 0;
             var list = Crapto1.LfsrRecovery32(ar0 ^ p640, 0);
             var crapto1 = new Crapto1();
-            var outKey = 0uL;
+            var outKey = ulong.MaxValue;
             foreach (var s in list)
             {
                 crapto1.State = s;
@@ -104,13 +110,12 @@ namespace Crapto1Sharp
                 var p641 = Crypto1.PrngSuccessor(nt1, 64);
                 if (ar1 == (crapto1.Crypto1Word() ^ p641))
                 {
+                    if (outKey != ulong.MaxValue)
+                        return ulong.MaxValue;
                     outKey = key;
-                    counter++;
-                    if (counter == 20)
-                        break;
                 }
             }
-            return counter == 1 ? outKey : ulong.MaxValue;
+            return outKey;
         }
 
         /// <summary>
@@ -125,20 +130,19 @@ namespace Crapto1Sharp
             var nonce = nonces.First();
             nonces = nonces.Skip(1);
             var p640 = Crypto1.PrngSuccessor(nonce.Nt, 64);
-            byte counter = 0;
             var list = Crapto1.LfsrRecovery32(nonce.Ar ^ p640, 0);
             var crapto1 = new Crapto1();
-            var outKey = 0uL;
+            var crypto1 = new Crypto1();
+            var outKey = ulong.MaxValue;
             foreach (var s in list)
             {
                 crapto1.State = s;
                 crapto1.LfsrRollbackWord();
                 crapto1.LfsrRollbackWord(nonce.Nr, true);
                 crapto1.LfsrRollbackWord(uid ^ nonce.Nt);
-                var key = crapto1.Lfsr;
                 var allPass = nonces.All(n =>
                 {
-                    var crypto1 = new Crypto1(key);
+                    crypto1.State = crapto1.State;
                     crypto1.Crypto1Word(uid ^ n.Nt);
                     crypto1.Crypto1Word(n.Nr, true);
                     var p641 = Crypto1.PrngSuccessor(n.Nt, 64);
@@ -146,13 +150,12 @@ namespace Crapto1Sharp
                 });
                 if (allPass)
                 {
-                    outKey = key;
-                    counter++;
-                    if (counter == 20)
-                        break;
+                    if (outKey != ulong.MaxValue)
+                        return ulong.MaxValue;
+                    outKey = crapto1.Lfsr;
                 }
             }
-            return counter == 1 ? outKey : ulong.MaxValue;
+            return outKey;
         }
 
         /// <summary>
