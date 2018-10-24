@@ -169,7 +169,7 @@ namespace Crapto1Sharp
             // Extract the keystream from the messages
             var ks2 = ar ^ Crypto1.PrngSuccessor(nt, 64); // keystream used to encrypt reader response
             var ks3 = at ^ Crypto1.PrngSuccessor(nt, 96); // keystream used to encrypt tag response
-            var revstate = Crapto1.LfsrRecovery64(ks2, ks3)[0];
+            var revstate = Crapto1.LfsrRecovery64(ks2, ks3).First();
             var crapto1 = new Crapto1(revstate);
             crapto1.LfsrRollbackWord();
             crapto1.LfsrRollbackWord();
