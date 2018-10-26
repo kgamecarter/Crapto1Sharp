@@ -13,6 +13,9 @@ namespace Crapto1Sharp
         public Crapto1()
         { }
 
+        public Crapto1(ulong key) : base(key)
+        { }
+
         public Crapto1(Crypto1State state) : base(state)
         { }
 
@@ -24,22 +27,22 @@ namespace Crapto1Sharp
         /// <returns></returns>
         public byte LfsrRollbackBit(byte @in = 0, bool isEncrypted = false)
         {
-	        uint @out;
-	        byte ret;
+            uint @out;
+            byte ret;
 
-	        _state.Odd &= 0xffffff;
+            _state.Odd &= 0xffffff;
             var t = _state.Odd;
             _state.Odd = _state.Even;
             _state.Even = t;
 
-	        @out = _state.Even & 1;
-	        @out ^= LF_POLY_EVEN & (_state.Even >>= 1);
-	        @out ^= LF_POLY_ODD & _state.Odd;
-	        @out ^= @in != 0 ? 1u : 0u;
-	        @out ^= (ret = Filter(_state.Odd)) & (isEncrypted ? 1u : 0u);
+            @out = _state.Even & 1;
+            @out ^= LF_POLY_EVEN & (_state.Even >>= 1);
+            @out ^= LF_POLY_ODD & _state.Odd;
+            @out ^= @in != 0 ? 1u : 0u;
+            @out ^= (ret = Filter(_state.Odd)) & (isEncrypted ? 1u : 0u);
 
             _state.Even |= (uint)EvenParity32(@out) << 23;
-	        return ret;
+            return ret;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -176,18 +179,19 @@ namespace Crapto1Sharp
                 return;
             }
 
-	        for (var i = 0; i < 4 && rem-- != 0; i++) {
-		        oks >>= 1;
-		        eks >>= 1;
-		        @in >>= 2;
-		        ExtendTable(odd, ref oddTail, oks & 1, LF_POLY_EVEN << 1 | 1, LF_POLY_ODD << 1, 0u);
-		        if (0 > oddTail)
-			        return;
+            for (var i = 0; i < 4 && rem-- != 0; i++)
+            {
+                oks >>= 1;
+                eks >>= 1;
+                @in >>= 2;
+                ExtendTable(odd, ref oddTail, oks & 1, LF_POLY_EVEN << 1 | 1, LF_POLY_ODD << 1, 0u);
+                if (0 > oddTail)
+                    return;
 
                 ExtendTable(even, ref evenTail, eks & 1, LF_POLY_ODD, LF_POLY_EVEN << 1 | 1, @in & 3);
-		        if (0 > evenTail)
-			        return;
-	        }
+                if (0 > evenTail)
+                    return;
+            }
 
             odd.Slice(0, oddTail + 1).Sort();
             even.Slice(0, evenTail + 1).Sort();
@@ -345,12 +349,12 @@ namespace Crapto1Sharp
                         Even = win
                     };
                     statelist.Add(s);
-                continue2:;
+                    continue2:;
                 }
             }
             return statelist;
         }
-        
+
         private static ushort[] dist;
 
         /// <summary>
