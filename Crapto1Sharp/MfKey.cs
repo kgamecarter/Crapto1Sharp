@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Crapto1Sharp
 {
@@ -131,15 +133,14 @@ namespace Crapto1Sharp
             nonces = nonces.Skip(1);
             var p640 = Crypto1.PrngSuccessor(nonce.Nt, 64);
             var list = Crapto1.LfsrRecovery32(nonce.Ar ^ p640, 0);
-            var crapto1 = new Crapto1();
-            var crypto1 = new Crypto1();
-            var outKey = ulong.MaxValue;
-            foreach (var s in list)
+            var keys = new ConcurrentBag<ulong>();
+            Parallel.ForEach(list, s =>
             {
-                crapto1.State = s;
+                var crapto1 = new Crapto1(s);
                 crapto1.LfsrRollbackWord();
                 crapto1.LfsrRollbackWord(nonce.Nr, true);
                 crapto1.LfsrRollbackWord(uid ^ nonce.Nt);
+                var crypto1 = new Crypto1();
                 var allPass = nonces.All(n =>
                 {
                     crypto1.State = crapto1.State;
@@ -149,13 +150,9 @@ namespace Crapto1Sharp
                     return n.Ar == (crypto1.Crypto1Word() ^ p641);
                 });
                 if (allPass)
-                {
-                    if (outKey != ulong.MaxValue)
-                        return ulong.MaxValue;
-                    outKey = crapto1.Lfsr;
-                }
-            }
-            return outKey;
+                    keys.Add(crapto1.Lfsr);
+            });
+            return keys.Count == 1 ? keys.First() : ulong.MaxValue;
         }
 
         /// <summary>
