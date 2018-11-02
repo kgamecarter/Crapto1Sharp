@@ -8,11 +8,11 @@ namespace Crapto1Sharp.Memory
 #if NET45
     internal readonly ref struct Span<T>
     {
-        public T[] Array { get; }
+        public T[] Array { [MethodImpl(MethodImplOptions.AggressiveInlining)]get; }
 
-        public int Offset { get; }
+        public int Offset { [MethodImpl(MethodImplOptions.AggressiveInlining)]get; }
 
-        public int Length { get; }
+        public int Length { [MethodImpl(MethodImplOptions.AggressiveInlining)]get; }
 
         public ref T this[int key]
         {
