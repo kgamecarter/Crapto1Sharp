@@ -39,18 +39,37 @@ namespace Crapto1Sharp.Extensions
             return x;
         }
 
-        public static uint ToUInt32(this byte[] a, int offset = 0)
+        public static uint ToUInt32(this byte[] a, int offset = 0, int length = 4)
         {
             uint result = 0;
-            for (int i = 0; i < 4; i++)
+            for (int i = 0; i < length; i++)
                 result = (result << 8) | a[i + offset];
             return result;
         }
 
-        public static byte[] GetBytes(this uint v)
+        public static ulong ToUInt64(this byte[] a, int offset = 0, int length = 8)
         {
-            byte[] result = new byte[4];
-            for (int i = 3; i >= 0; i--)
+            ulong result = 0;
+            for (int i = 0; i < length; i++)
+                result = (result << 8) | a[i + offset];
+            return result;
+        }
+
+        public static byte[] GetBytes(this uint v, int length = 4)
+        {
+            byte[] result = new byte[length];
+            for (int i = length - 1; i >= 0; i--)
+            {
+                result[i] = (byte)v;
+                v >>= 8;
+            }
+            return result;
+        }
+
+        public static byte[] GetBytes(this ulong v, int length = 8)
+        {
+            byte[] result = new byte[length];
+            for (int i = length - 1; i >= 0; i--)
             {
                 result[i] = (byte)v;
                 v >>= 8;
