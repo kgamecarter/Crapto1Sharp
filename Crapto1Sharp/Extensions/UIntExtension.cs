@@ -32,11 +32,10 @@ namespace Crapto1Sharp.Extensions
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static uint SwapEndian(this uint x)
+        public static void SwapEndian(ref this uint x)
         {
             x = (x >> 8 & 0xff00ff) | (x & 0xff00ff) << 8;
             x = x >> 16 | x << 16;
-            return x;
         }
 
         public static uint ToUInt32(this byte[] a, int offset = 0, int length = 4)

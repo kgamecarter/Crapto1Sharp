@@ -155,10 +155,11 @@ namespace Crapto1Sharp
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static uint PrngSuccessor(uint x, int n)
         {
-            x = x.SwapEndian();
+            x.SwapEndian();
             while (n-- > 0)
                 x = x >> 1 | (x >> 16 ^ x >> 18 ^ x >> 19 ^ x >> 21) << 31;
-            return x.SwapEndian();
+            x.SwapEndian();
+            return x;
         }
     }
 }
