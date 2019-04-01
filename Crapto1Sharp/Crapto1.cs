@@ -134,12 +134,12 @@ namespace Crapto1Sharp
                     tbl[i] |= Filter(tbl[i]) ^ bit;
                 }
                 else if (Filter(tbl[i]) == bit)
-                {       // insert
+                {   // insert
                     tbl[++end] = tbl[++i];
                     tbl[i] = tbl[i - 1] | 1;
                 }
                 else
-                {                               // drop
+                {   // drop
                     tbl[i--] = tbl[end--];
                 }
             }
@@ -349,7 +349,7 @@ namespace Crapto1Sharp
                         Even = win
                     };
                     statelist.Add(s);
-                    continue2:;
+                continue2:;
                 }
             }
             return statelist;
