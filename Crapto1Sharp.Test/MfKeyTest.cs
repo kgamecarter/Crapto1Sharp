@@ -14,15 +14,15 @@ public class MfKeyTest
     public void MfKey32_SameNtTwoNonce(uint uid, uint nt, uint nr0, uint nr1, ulong expectedKey)
     {
         var p64 = Crypto1.PrngSuccessor(nt, 64);
-        var crypto1 = new Crypto1(expectedKey);
-        crypto1.Crypto1Word(uid ^ nt);
-        nr0 ^= crypto1.Crypto1Word(nr0);
-        var ar0 = p64 ^ crypto1.Crypto1Word();
+        var state = new Crypto1State(expectedKey);
+        state.Crypto1Word(uid ^ nt);
+        nr0 ^= state.Crypto1Word(nr0);
+        var ar0 = p64 ^ state.Crypto1Word();
 
-        crypto1 = new Crypto1(expectedKey);
-        crypto1.Crypto1Word(uid ^ nt);
-        nr1 ^= crypto1.Crypto1Word(nr1);
-        var ar1 = p64 ^ crypto1.Crypto1Word();
+        state = new Crypto1State(expectedKey);
+        state.Crypto1Word(uid ^ nt);
+        nr1 ^= state.Crypto1Word(nr1);
+        var ar1 = p64 ^ state.Crypto1Word();
 
         var key = MfKey.MfKey32(uid, nt, nr0, ar0, nr1, ar1);
         Assert.AreEqual(expectedKey, key);
@@ -38,13 +38,13 @@ public class MfKeyTest
         Random rnd = new Random(randomSeed);
         for (int i = 0; i < nonceCount; i++)
         {
-            var crypto1 = new Crypto1(expectedKey);
-            crypto1.Crypto1Word(uid ^ nt);
+            var state = new Crypto1State(expectedKey);
+            state.Crypto1Word(uid ^ nt);
             var nr = (uint)rnd.Next();
             list.Add(new Nonce()
             {
-                Nr = crypto1.Crypto1Word(nr) ^ nr,
-                Ar = p64 ^ crypto1.Crypto1Word()
+                Nr = state.Crypto1Word(nr) ^ nr,
+                Ar = p64 ^ state.Crypto1Word()
             });
         }
 
@@ -58,16 +58,16 @@ public class MfKeyTest
     public void MfKey32_ManyNtTwoNonce(uint uid, uint nt0, uint nt1, uint nr0, uint nr1, ulong expectedKey)
     {
         var p64 = Crypto1.PrngSuccessor(nt0, 64);
-        var crypto1 = new Crypto1(expectedKey);
-        crypto1.Crypto1Word(uid ^ nt0);
-        nr0 ^= crypto1.Crypto1Word(nr0);
-        var ar0 = p64 ^ crypto1.Crypto1Word();
+        var state = new Crypto1State(expectedKey);
+        state.Crypto1Word(uid ^ nt0);
+        nr0 ^= state.Crypto1Word(nr0);
+        var ar0 = p64 ^ state.Crypto1Word();
 
         p64 = Crypto1.PrngSuccessor(nt1, 64);
-        crypto1 = new Crypto1(expectedKey);
-        crypto1.Crypto1Word(uid ^ nt1);
-        nr1 ^= crypto1.Crypto1Word(nr1);
-        var ar1 = p64 ^ crypto1.Crypto1Word();
+        state = new Crypto1State(expectedKey);
+        state.Crypto1Word(uid ^ nt1);
+        nr1 ^= state.Crypto1Word(nr1);
+        var ar1 = p64 ^ state.Crypto1Word();
 
         var key = MfKey.MfKey32(uid, nt0, nr0, ar0, nt1, nr1, ar1);
         Assert.AreEqual(expectedKey, key);
@@ -82,16 +82,16 @@ public class MfKeyTest
         Random rnd = new Random(randomSeed);
         for (int i = 0; i < nonceCount; i++)
         {
-            var crypto1 = new Crypto1(expectedKey);
+            var state = new Crypto1State(expectedKey);
             var nt = (uint)rnd.Next();
             var nr = (uint)rnd.Next();
             var p64 = Crypto1.PrngSuccessor(nt, 64);
-            crypto1.Crypto1Word(uid ^ nt);
+            state.Crypto1Word(uid ^ nt);
             list.Add(new Nonce()
             {
                 Nt = nt,
-                Nr = crypto1.Crypto1Word(nr) ^ nr,
-                Ar = p64 ^ crypto1.Crypto1Word()
+                Nr = state.Crypto1Word(nr) ^ nr,
+                Ar = p64 ^ state.Crypto1Word()
             });
         }
 

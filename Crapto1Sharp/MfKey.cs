@@ -26,14 +26,13 @@ public static class MfKey
         var keys = new ConcurrentBag<ulong>();
         Parallel.ForEach(list, s =>
         {
-            var crapto1 = new Crapto1(s);
-            crapto1.LfsrRollbackWord();
-            crapto1.LfsrRollbackWord(nr0, true);
-            crapto1.LfsrRollbackWord(uid ^ nt);
-            var key = crapto1.Lfsr;
-            crapto1.Crypto1Word(uid ^ nt);
-            crapto1.Crypto1Word(nr1, true);
-            if (ar1 == (crapto1.Crypto1Word() ^ p64))
+            s.LfsrRollbackWord();
+            s.LfsrRollbackWord(nr0, true);
+            s.LfsrRollbackWord(uid ^ nt);
+            var key = s.Lfsr;
+            s.Crypto1Word(uid ^ nt);
+            s.Crypto1Word(nr1, true);
+            if (ar1 == (s.Crypto1Word() ^ p64))
                 keys.Add(key);
         });
         return keys.Count == 1 ? keys.First() : ulong.MaxValue;
@@ -55,20 +54,18 @@ public static class MfKey
         var keys = new ConcurrentBag<ulong>();
         Parallel.ForEach(list, s =>
         {
-            var crapto1 = new Crapto1(s);
-            crapto1.LfsrRollbackWord();
-            crapto1.LfsrRollbackWord(nonce.Nr, true);
-            crapto1.LfsrRollbackWord(uid ^ nt);
-            var crypto1 = new Crypto1();
+            s.LfsrRollbackWord();
+            s.LfsrRollbackWord(nonce.Nr, true);
+            s.LfsrRollbackWord(uid ^ nt);
             var allPass = nonces.All(n =>
             {
-                crypto1.State = crapto1.State;
-                crypto1.Crypto1Word(uid ^ nt);
-                crypto1.Crypto1Word(n.Nr, true);
-                return n.Ar == (crypto1.Crypto1Word() ^ p64);
+                var s2 = s;
+                s2.Crypto1Word(uid ^ nt);
+                s2.Crypto1Word(n.Nr, true);
+                return n.Ar == (s2.Crypto1Word() ^ p64);
             });
             if (allPass)
-                keys.Add(crapto1.Lfsr);
+                keys.Add(s.Lfsr);
         });
         return keys.Count == 1 ? keys.First() : ulong.MaxValue;
     }
@@ -91,15 +88,14 @@ public static class MfKey
         var keys = new ConcurrentBag<ulong>();
         Parallel.ForEach(list, s =>
         {
-            var crapto1 = new Crapto1(s);
-            crapto1.LfsrRollbackWord();
-            crapto1.LfsrRollbackWord(nr0, true);
-            crapto1.LfsrRollbackWord(uid ^ nt0);
-            var key = crapto1.Lfsr;
-            crapto1.Crypto1Word(uid ^ nt1);
-            crapto1.Crypto1Word(nr1, true);
+            s.LfsrRollbackWord();
+            s.LfsrRollbackWord(nr0, true);
+            s.LfsrRollbackWord(uid ^ nt0);
+            var key = s.Lfsr;
+            s.Crypto1Word(uid ^ nt1);
+            s.Crypto1Word(nr1, true);
             var p641 = Crypto1.PrngSuccessor(nt1, 64);
-            if (ar1 == (crapto1.Crypto1Word() ^ p641))
+            if (ar1 == (s.Crypto1Word() ^ p641))
                 keys.Add(key);
         });
         return keys.Count == 1 ? keys.First() : ulong.MaxValue;
@@ -121,21 +117,19 @@ public static class MfKey
         var keys = new ConcurrentBag<ulong>();
         Parallel.ForEach(list, s =>
         {
-            var crapto1 = new Crapto1(s);
-            crapto1.LfsrRollbackWord();
-            crapto1.LfsrRollbackWord(nonce.Nr, true);
-            crapto1.LfsrRollbackWord(uid ^ nonce.Nt);
-            var crypto1 = new Crypto1();
+            s.LfsrRollbackWord();
+            s.LfsrRollbackWord(nonce.Nr, true);
+            s.LfsrRollbackWord(uid ^ nonce.Nt);
             var allPass = nonces.All(n =>
             {
-                crypto1.State = crapto1.State;
-                crypto1.Crypto1Word(uid ^ n.Nt);
-                crypto1.Crypto1Word(n.Nr, true);
+                var s2 = s;
+                s2.Crypto1Word(uid ^ n.Nt);
+                s2.Crypto1Word(n.Nr, true);
                 var p641 = Crypto1.PrngSuccessor(n.Nt, 64);
-                return n.Ar == (crypto1.Crypto1Word() ^ p641);
+                return n.Ar == (s2.Crypto1Word() ^ p641);
             });
             if (allPass)
-                keys.Add(crapto1.Lfsr);
+                keys.Add(s.Lfsr);
         });
         return keys.Count == 1 ? keys.First() : ulong.MaxValue;
     }
@@ -155,11 +149,10 @@ public static class MfKey
         var ks2 = ar ^ Crypto1.PrngSuccessor(nt, 64); // keystream used to encrypt reader response
         var ks3 = at ^ Crypto1.PrngSuccessor(nt, 96); // keystream used to encrypt tag response
         var revstate = Crapto1.LfsrRecovery64(ks2, ks3).First();
-        var crapto1 = new Crapto1(revstate);
-        crapto1.LfsrRollbackWord();
-        crapto1.LfsrRollbackWord();
-        crapto1.LfsrRollbackWord(nr, true);
-        crapto1.LfsrRollbackWord(uid ^ nt);
-        return crapto1.Lfsr;
+        revstate.LfsrRollbackWord();
+        revstate.LfsrRollbackWord();
+        revstate.LfsrRollbackWord(nr, true);
+        revstate.LfsrRollbackWord(uid ^ nt);
+        return revstate.Lfsr;
     }
 }

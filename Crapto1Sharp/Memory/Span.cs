@@ -7,18 +7,22 @@ namespace Crapto1Sharp.Memory;
 #if NET462
 internal readonly ref struct Span<T>
 {
-    public T[] Array { [MethodImpl(MethodImplOptions.AggressiveInlining)]get; }
+    private readonly T[] _array;
+    private readonly int _offset;
+    private readonly int _length;
+    
+    public T[] Array { [MethodImpl(MethodImplOptions.AggressiveInlining)]get => _array; }
 
-    public int Offset { [MethodImpl(MethodImplOptions.AggressiveInlining)]get; }
-
-    public int Length { [MethodImpl(MethodImplOptions.AggressiveInlining)]get; }
+    public int Offset { [MethodImpl(MethodImplOptions.AggressiveInlining)]get => _offset; }
+    
+    public int Length { [MethodImpl(MethodImplOptions.AggressiveInlining)]get => _length; }
 
     public ref T this[int key]
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            return ref Array[key + Offset];
+            return ref _array[key + _offset];
         }
     }
 
@@ -27,29 +31,29 @@ internal readonly ref struct Span<T>
 
     public Span(T[] array, int offset, int length)
     {
-        Array = array;
-        Offset = offset;
-        Length = length;
+        _array = array;
+        _offset = offset;
+        _length = length;
     }
 
     public Span<T> Slice(int start)
     {
-        return new Span<T>(Array, Offset + start, Length - start);
+        return new Span<T>(_array, _offset + start, _length - start);
     }
 
     public Span<T> Slice(int start, int length)
     {
-        return new Span<T>(Array, Offset + start, length);
+        return new Span<T>(_array, _offset + start, length);
     }
 
     public int BinarySearch(T value)
     {
-        return System.Array.BinarySearch(Array, Offset, Length, value);
+        return System.Array.BinarySearch(_array, _offset, _length, value);
     }
 
     public void Sort()
     {
-        System.Array.Sort(Array, Offset, Length);
+        System.Array.Sort(_array, _offset, _length);
     }
 
     public static implicit operator Span<T>(T[] array)

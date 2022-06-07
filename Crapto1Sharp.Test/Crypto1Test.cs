@@ -13,9 +13,9 @@ public class Crypto1Test
     [DataRow(0x239186C46E88uL, 0x00A191E5u, 0x008A4550u)]
     public void Crypto1State(ulong key, uint odd, uint even)
     {
-        var crypto1 = new Crypto1(key);
-        Assert.AreEqual(odd, crypto1.State.Odd);
-        Assert.AreEqual(even, crypto1.State.Even);
+        var state = new Crypto1State(key);
+        Assert.AreEqual(odd, state.Odd);
+        Assert.AreEqual(even, state.Even);
     }
 
     [TestMethod]
@@ -26,8 +26,8 @@ public class Crypto1Test
     [DataRow(0x239186C46E88uL)]
     public void Lfsr(ulong key)
     {
-        var crypto1 = new Crypto1(key);
-        Assert.AreEqual(key, crypto1.Lfsr);
+        var state = new Crypto1State(key);
+        Assert.AreEqual(key, state.Lfsr);
     }
 
     [TestMethod]
@@ -38,8 +38,8 @@ public class Crypto1Test
     [DataRow(0x239186C46E88uL)]
     public void PeekCrypto1Bit(ulong key)
     {
-        var crypto1 = new Crypto1(key);
-        Assert.AreEqual(Crypto1.Filter(crypto1.State.Odd), crypto1.PeekCrypto1Bit());
+        var state = new Crypto1State(key);
+        Assert.AreEqual(Crypto1.Filter(state.Odd), state.PeekCrypto1Bit());
     }
 
     [TestMethod]

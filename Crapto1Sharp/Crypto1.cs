@@ -3,51 +3,12 @@ using System.Runtime.CompilerServices;
 
 namespace Crapto1Sharp;
 
-public class Crypto1
+public static class Crypto1
 {
     public const uint LF_POLY_ODD = 0x29CE5C;
     public const uint LF_POLY_EVEN = 0x870804;
 
-    protected Crypto1State _state;
-
-    public Crypto1State State
-    {
-        get
-        { return _state; }
-        set
-        { _state = value; }
-    }
-
-    public ulong Lfsr
-    {
-        get
-        {
-            ulong lfsr = 0L;
-            for (int i = 23; i >= 0; --i)
-            {
-                lfsr = lfsr << 1 | _state.Odd.Bit(i ^ 3);
-                lfsr = lfsr << 1 | _state.Even.Bit(i ^ 3);
-            }
-            return lfsr;
-        }
-    }
-
-    public Crypto1()
-    { }
-
-    public Crypto1(ulong key)
-    {
-        for (int i = 47; i > 0; i -= 2)
-        {
-            _state.Odd = _state.Odd << 1 | key.Bit((i - 1) ^ 7);
-            _state.Even = _state.Even << 1 | key.Bit(i ^ 7);
-        }
-    }
-
-    public Crypto1(Crypto1State state)
-    { _state = state; }
-
-    public byte Crypto1Bit(byte @in = 0, bool isEncrypted = false)
+    public static byte Crypto1Bit(this ref Crypto1State _state, byte @in = 0, bool isEncrypted = false)
     {
         uint feedin;
         byte ret = Filter(_state.Odd);
@@ -66,34 +27,34 @@ public class Crypto1
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public byte Crypto1Byte(byte @in = 0, bool isEncrypted = false)
+    public static byte Crypto1Byte(this ref Crypto1State _state, byte @in = 0, bool isEncrypted = false)
     {
         byte ret = 0;
 
         for (int i = 0; i < 8; ++i)
-            ret |= (byte)(Crypto1Bit(@in.Bit(i), isEncrypted) << i);
+            ret |= (byte)(_state.Crypto1Bit(@in.Bit(i), isEncrypted) << i);
 
         return ret;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public uint Crypto1Word(uint @in = 0, bool isEncrypted = false)
+    public static uint Crypto1Word(this ref Crypto1State _state, uint @in = 0, bool isEncrypted = false)
     {
         uint ret = 0;
 
         for (int i = 0; i < 32; ++i)
-            ret |= (uint)Crypto1Bit(@in.BeBit(i), isEncrypted) << (i ^ 24);
+            ret |= (uint)_state.Crypto1Bit(@in.BeBit(i), isEncrypted) << (i ^ 24);
 
         return ret;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public byte PeekCrypto1Bit()
+    public static byte PeekCrypto1Bit(this ref Crypto1State _state)
     {
         return Filter(_state.Odd);
     }
 
-    public void Encrypt(byte[] data, byte[] parirty, int offset, int length, bool isIn = false)
+    public static void Encrypt(this ref Crypto1State _state, byte[] data, byte[] parirty, int offset, int length, bool isIn = false)
     {
         int end = offset + length;
         for (int i = offset; i < end; i++)
@@ -101,9 +62,9 @@ public class Crypto1
             // compute Parity
             parirty[i] = OddParity8(data[i]);
             // encrypt data
-            data[i] ^= Crypto1Byte(isIn ? data[i] : (byte)0);
+            data[i] ^= _state.Crypto1Byte(isIn ? data[i] : (byte)0);
             // encrypt Parity
-            parirty[i] ^= PeekCrypto1Bit();
+            parirty[i] ^= _state.PeekCrypto1Bit();
         }
     }
 

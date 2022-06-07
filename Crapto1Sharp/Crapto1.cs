@@ -8,24 +8,15 @@ using Crapto1Sharp.Memory;
 
 namespace Crapto1Sharp;
 
-public class Crapto1 : Crypto1
+public static class Crapto1
 {
-    public Crapto1()
-    { }
-
-    public Crapto1(ulong key) : base(key)
-    { }
-
-    public Crapto1(Crypto1State state) : base(state)
-    { }
-
     /// <summary>
     /// Rollback the shift register in order to get previous states
     /// </summary>
     /// <param name="in"></param>
     /// <param name="isEncrypted"></param>
     /// <returns></returns>
-    public byte LfsrRollbackBit(byte @in = 0, bool isEncrypted = false)
+    public static byte LfsrRollbackBit(this ref Crypto1State _state, byte @in = 0, bool isEncrypted = false)
     {
         uint @out;
         byte ret;
@@ -36,33 +27,33 @@ public class Crapto1 : Crypto1
         _state.Even = t;
 
         @out = _state.Even & 1;
-        @out ^= LF_POLY_EVEN & (_state.Even >>= 1);
-        @out ^= LF_POLY_ODD & _state.Odd;
+        @out ^= Crypto1.LF_POLY_EVEN & (_state.Even >>= 1);
+        @out ^= Crypto1.LF_POLY_ODD & _state.Odd;
         @out ^= @in != 0 ? 1u : 0u;
-        @out ^= (ret = Filter(_state.Odd)) & (isEncrypted ? 1u : 0u);
+        @out ^= (ret = Crypto1.Filter(_state.Odd)) & (isEncrypted ? 1u : 0u);
 
-        _state.Even |= (uint)EvenParity32(@out) << 23;
+        _state.Even |= (uint)Crypto1.EvenParity32(@out) << 23;
         return ret;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public byte LfsrRollbackByte(byte @in = 0, bool isEncrypted = false)
+    public static byte LfsrRollbackByte(this ref Crypto1State _state, byte @in = 0, bool isEncrypted = false)
     {
         byte ret = 0;
-
+        
         for (var i = 7; i >= 0; --i)
-            ret |= (byte)(LfsrRollbackBit(@in.Bit(i), isEncrypted) << i);
+            ret |= (byte)(_state.LfsrRollbackBit(@in.Bit(i), isEncrypted) << i);
 
         return ret;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public uint LfsrRollbackWord(uint @in = 0, bool isEncrypted = false)
+    public static uint LfsrRollbackWord(this ref Crypto1State _state, uint @in = 0, bool isEncrypted = false)
     {
         uint ret = 0;
 
         for (var i = 31; i >= 0; --i)
-            ret |= (uint)LfsrRollbackBit(@in.BeBit(i), isEncrypted) << (i ^ 24);
+            ret |= (uint)_state.LfsrRollbackBit(@in.BeBit(i), isEncrypted) << (i ^ 24);
 
         return ret;
     }
@@ -78,8 +69,8 @@ public class Crapto1 : Crypto1
     {
         uint p = item >> 25;
 
-        p = p << 1 | EvenParity32(item & mask1);
-        p = p << 1 | EvenParity32(item & mask2);
+        p = p << 1 | Crypto1.EvenParity32(item & mask1);
+        p = p << 1 | Crypto1.EvenParity32(item & mask2);
         item = p << 24 | (item & 0xffffff);
     }
 
@@ -98,13 +89,13 @@ public class Crapto1 : Crypto1
         @in <<= 24;
         var i = 0;
         for (tbl[i] <<= 1; i <= end; tbl[++i] <<= 1)
-            if ((Filter(tbl[i]) ^ Filter(tbl[i] | 1)) != 0)
+            if ((Crypto1.Filter(tbl[i]) ^ Crypto1.Filter(tbl[i] | 1)) != 0)
             {
-                tbl[i] |= Filter(tbl[i]) ^ bit;
+                tbl[i] |= Crypto1.Filter(tbl[i]) ^ bit;
                 UpdateContribution(ref tbl[i], m1, m2);
                 tbl[i] ^= @in;
             }
-            else if (Filter(tbl[i]) == bit)
+            else if (Crypto1.Filter(tbl[i]) == bit)
             {
                 tbl[++end] = tbl[i + 1];
                 tbl[i + 1] = tbl[i] | 1;
@@ -129,11 +120,11 @@ public class Crapto1 : Crypto1
         var i = 0;
         for (tbl[i] <<= 1; i <= end; tbl[++i] <<= 1)
         {
-            if ((Filter(tbl[i]) ^ Filter(tbl[i] | 1)) != 0)
+            if ((Crypto1.Filter(tbl[i]) ^ Crypto1.Filter(tbl[i] | 1)) != 0)
             {   // replace
-                tbl[i] |= Filter(tbl[i]) ^ bit;
+                tbl[i] |= Crypto1.Filter(tbl[i]) ^ bit;
             }
-            else if (Filter(tbl[i]) == bit)
+            else if (Crypto1.Filter(tbl[i]) == bit)
             {   // insert
                 tbl[++end] = tbl[++i];
                 tbl[i] = tbl[i - 1] | 1;
@@ -166,14 +157,13 @@ public class Crapto1 : Crypto1
         {
             for (e = 0; e <= evenTail; e++)
             {
-                even[e] = even[e] << 1 ^ EvenParity32(even[e] & LF_POLY_EVEN) ^ ((@in & 4) != 0 ? 1u : 0u);
+                even[e] = even[e] << 1 ^ Crypto1.EvenParity32(even[e] & Crypto1.LF_POLY_EVEN) ^ ((@in & 4) != 0 ? 1u : 0u);
                 for (o = 0; o <= oddTail; o++)
                 {
-                    sl.Add(new Crypto1State()
-                    {
-                        Even = odd[o],
-                        Odd = even[e] ^ EvenParity32(odd[o] & LF_POLY_ODD)
-                    });
+                    sl.Add(new Crypto1State(
+                        even: odd[o],
+                        odd: even[e] ^ Crypto1.EvenParity32(odd[o] & Crypto1.LF_POLY_ODD)
+                    ));
                 }
             }
             return;
@@ -184,11 +174,11 @@ public class Crapto1 : Crypto1
             oks >>= 1;
             eks >>= 1;
             @in >>= 2;
-            ExtendTable(odd, ref oddTail, oks & 1, LF_POLY_EVEN << 1 | 1, LF_POLY_ODD << 1, 0u);
+            ExtendTable(odd, ref oddTail, oks & 1, Crypto1.LF_POLY_EVEN << 1 | 1, Crypto1.LF_POLY_ODD << 1, 0u);
             if (0 > oddTail)
                 return;
 
-            ExtendTable(even, ref evenTail, eks & 1, LF_POLY_ODD, LF_POLY_EVEN << 1 | 1, @in & 3);
+            ExtendTable(even, ref evenTail, eks & 1, Crypto1.LF_POLY_ODD, Crypto1.LF_POLY_EVEN << 1 | 1, @in & 3);
             if (0 > evenTail)
                 return;
         }
@@ -228,9 +218,9 @@ public class Crapto1 : Crypto1
 
         for (var i = 1u << 20; (int)i >= 0; --i)
         {
-            if (Filter(i) == (oks & 1))
+            if (Crypto1.Filter(i) == (oks & 1))
                 odd[++oddTail] = i;
-            if (Filter(i) == (eks & 1))
+            if (Crypto1.Filter(i) == (eks & 1))
                 even[++evenTail] = i;
         }
 
@@ -304,7 +294,7 @@ public class Crapto1 : Crypto1
 
         for (var i = 0xfffffu; (int)i >= 0; i--)
         {
-            if (Filter(i) != oks[0])
+            if (Crypto1.Filter(i) != oks[0])
                 continue;
 
             var tail = 0;
@@ -316,9 +306,9 @@ public class Crapto1 : Crypto1
                 continue;
 
             for (var j = 0; j < 19; ++j)
-                low = low << 1 | EvenParity32(i & S1[j]);
+                low = low << 1 | Crypto1.EvenParity32(i & S1[j]);
             for (var j = 0; j < 32; ++j)
-                hi[j] = EvenParity32(i & T1[j]);
+                hi[j] = Crypto1.EvenParity32(i & T1[j]);
 
 
             for (; tail >= 0; --tail)
@@ -326,28 +316,27 @@ public class Crapto1 : Crypto1
                 for (var j = 0; j < 3; j++)
                 {
                     table[tail] = table[tail] << 1;
-                    table[tail] |= EvenParity32((i & C1[j]) ^ (table[tail] & C2[j]));
-                    if (Filter(table[tail]) != oks[29 + j])
+                    table[tail] |= Crypto1.EvenParity32((i & C1[j]) ^ (table[tail] & C2[j]));
+                    if (Crypto1.Filter(table[tail]) != oks[29 + j])
                         goto continue2;
                 }
 
                 for (var j = 0; j < 19; j++)
-                    win = win << 1 | EvenParity32(table[tail] & S2[j]);
+                    win = win << 1 | Crypto1.EvenParity32(table[tail] & S2[j]);
 
                 win ^= low;
                 for (var j = 0; j < 32; ++j)
                 {
-                    win = win << 1 ^ hi[j] ^ EvenParity32(table[tail] & T2[j]);
-                    if (Filter(win) != eks[j])
+                    win = win << 1 ^ hi[j] ^ Crypto1.EvenParity32(table[tail] & T2[j]);
+                    if (Crypto1.Filter(win) != eks[j])
                         goto continue2;
                 }
 
-                table[tail] = table[tail] << 1 | EvenParity32(LF_POLY_EVEN & table[tail]);
-                var s = new Crypto1State()
-                {
-                    Odd = table[tail] ^ EvenParity32(LF_POLY_ODD & win),
-                    Even = win
-                };
+                table[tail] = table[tail] << 1 | Crypto1.EvenParity32(Crypto1.LF_POLY_EVEN & table[tail]);
+                var s = new Crypto1State(
+                    odd: table[tail] ^ Crypto1.EvenParity32(Crypto1.LF_POLY_ODD & win),
+                    even: win
+                );
                 statelist.Add(s);
             continue2:;
             }
