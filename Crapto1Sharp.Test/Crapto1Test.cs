@@ -3,10 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Crapto1Sharp.Test
+namespace Crapto1Sharp.Test;
+
+[TestClass]
+public class Crapto1Test
 {
-    [TestClass]
-    public class Crapto1Test
-    {
-    }
 }

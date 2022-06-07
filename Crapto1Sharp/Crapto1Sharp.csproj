@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard1.1;netstandard2.0;net45</TargetFrameworks>
+    <TargetFrameworks>netstandard1.1;netstandard2.0;net462;net6.0</TargetFrameworks>
     <Authors>kgame</Authors>
     <Company>kgame SOFT</Company>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
@@ -12,13 +12,14 @@
     <RepositoryType>git</RepositoryType>
     <Version>1.2.2</Version>
     <PackageTags>mifare crypto1 crapto1</PackageTags>
-    <DefineConstants Condition=" '$(TargetFramework)' == 'net45' ">NET45</DefineConstants>
-    <LangVersion>7.3</LangVersion>
+    <DefineConstants Condition=" '$(TargetFramework)' == 'net462' ">NET462</DefineConstants>
+    <DefineConstants Condition=" '$(TargetFramework)' == 'net6.0' ">NET6</DefineConstants>
+    <LangVersion>10.0</LangVersion>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard1.1'">
     <PackageReference Include="System.Memory">
-      <Version>4.5.1</Version>
+      <Version>4.5.5</Version>
     </PackageReference>
     <PackageReference Include="System.Threading.Tasks.Parallel">
       <Version>4.3.0</Version>
@@ -27,7 +28,7 @@
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
     <PackageReference Include="System.Memory">
-      <Version>4.5.1</Version>
+      <Version>4.5.5</Version>
     </PackageReference>
   </ItemGroup>
   
