@@ -1,6 +1,7 @@
 ﻿using Crapto1Sharp.Extensions;
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace Crapto1Sharp;
@@ -30,6 +31,7 @@ public struct Crypto1State
 
     public ulong Lfsr
     {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
             ulong lfsr = 0L;
@@ -40,5 +42,11 @@ public struct Crypto1State
             }
             return lfsr;
         }
+    }
+
+    public byte PeekCrypto1Bit
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => Crypto1.Filter(Odd);
     }
 }

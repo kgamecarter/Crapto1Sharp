@@ -39,7 +39,7 @@ public class Crypto1Test
     public void PeekCrypto1Bit(ulong key)
     {
         var state = new Crypto1State(key);
-        Assert.AreEqual(Crypto1.Filter(state.Odd), state.PeekCrypto1Bit());
+        Assert.AreEqual(Crypto1.Filter(state.Odd), state.PeekCrypto1Bit);
     }
 
     [TestMethod]

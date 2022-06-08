@@ -15,6 +15,7 @@
     <DefineConstants Condition=" '$(TargetFramework)' == 'net462' ">NET462</DefineConstants>
     <DefineConstants Condition=" '$(TargetFramework)' == 'net6.0' ">NET6</DefineConstants>
     <LangVersion>10.0</LangVersion>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard1.1'">

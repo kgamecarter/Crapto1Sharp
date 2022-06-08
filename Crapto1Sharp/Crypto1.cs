@@ -48,12 +48,6 @@ public static class Crypto1
         return ret;
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static byte PeekCrypto1Bit(this ref Crypto1State _state)
-    {
-        return Filter(_state.Odd);
-    }
-
     public static void Encrypt(this ref Crypto1State _state, byte[] data, byte[] parirty, int offset, int length, bool isIn = false)
     {
         int end = offset + length;
@@ -64,7 +58,7 @@ public static class Crypto1
             // encrypt data
             data[i] ^= _state.Crypto1Byte(isIn ? data[i] : (byte)0);
             // encrypt Parity
-            parirty[i] ^= _state.PeekCrypto1Bit();
+            parirty[i] ^= _state.PeekCrypto1Bit;
         }
     }
 

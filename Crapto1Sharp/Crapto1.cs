@@ -344,7 +344,7 @@ public static class Crapto1
         return statelist;
     }
 
-    private static ushort[] dist;
+    private static ushort[]? dist;
 
     /// <summary>
     /// x,y valid tag nonces, then prng_successor(x, nonce_distance(x, y)) = y
