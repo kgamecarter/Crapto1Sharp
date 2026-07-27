@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="Crapto1Sharp.Benchmarks/Crapto1Sharp.Benchmarks.csproj" />
+  <Project Path="Crapto1Sharp.Test/Crapto1Sharp.Test.csproj" />
+  <Project Path="Crapto1Sharp/Crapto1Sharp.csproj" />
+</Solution>

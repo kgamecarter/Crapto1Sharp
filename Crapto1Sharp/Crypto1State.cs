@@ -6,18 +6,40 @@ using System.Text;
 
 namespace Crapto1Sharp;
 
+/// <summary>
+/// Represents the 48-bit odd/even linear-feedback shift register state used by
+/// the Crypto1 cipher.
+/// </summary>
 public struct Crypto1State
 {
+    /// <summary>
+    /// Gets or sets the 24-bit odd half of the Crypto1 shift register.
+    /// </summary>
     public uint Odd;
 
+    /// <summary>
+    /// Gets or sets the 24-bit even half of the Crypto1 shift register.
+    /// </summary>
     public uint Even;
 
+    /// <summary>
+    /// Initializes a state from its odd and even register halves.
+    /// </summary>
+    /// <param name="odd">The odd 24-bit register half.</param>
+    /// <param name="even">The even 24-bit register half.</param>
     public Crypto1State(uint odd, uint even)
     {
         Odd = odd;
         Even = even;
     }
 
+    /// <summary>
+    /// Initializes a state from a 48-bit Crypto1 key.
+    /// </summary>
+    /// <param name="key">
+    /// The key to interleave into the odd and even register halves. Bits above
+    /// bit 47 are ignored.
+    /// </param>
     public Crypto1State(ulong key)
     {
         Odd = 0;
@@ -29,6 +51,10 @@ public struct Crypto1State
         }
     }
 
+    /// <summary>
+    /// Gets the current odd/even register halves combined as a 48-bit Crypto1
+    /// LFSR value.
+    /// </summary>
     public ulong Lfsr
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -44,6 +70,9 @@ public struct Crypto1State
         }
     }
 
+    /// <summary>
+    /// Gets the current Crypto1 filter output bit without advancing the state.
+    /// </summary>
     public byte PeekCrypto1Bit
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
