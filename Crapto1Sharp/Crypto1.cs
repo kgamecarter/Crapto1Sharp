@@ -74,7 +74,7 @@ public static class Crypto1
         return (byte)(0xEC57E80A >> (int)f & 1);
     }
 
-    static readonly byte[] OddByteParity = new byte[256] {
+    static readonly byte[] OddByteParity = [
         1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1,
         0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0,
         0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0,
@@ -91,7 +91,7 @@ public static class Crypto1
         0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0,
         0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0,
         1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1
-    };
+    ];
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static byte OddParity8(byte x) => OddByteParity[x];

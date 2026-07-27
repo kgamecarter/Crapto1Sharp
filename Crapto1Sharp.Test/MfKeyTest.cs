@@ -34,14 +34,14 @@ public class MfKeyTest
     public void MfKey32_SameNtManyNonce(uint uid, uint nt, int randomSeed, int nonceCount, ulong expectedKey)
     {
         var p64 = Crypto1.PrngSuccessor(nt, 64);
-        var list = new List<Nonce>();
-        Random rnd = new Random(randomSeed);
+        var list = (List<Nonce>)[];
+        Random rnd = new(randomSeed);
         for (int i = 0; i < nonceCount; i++)
         {
             var state = new Crypto1State(expectedKey);
             state.Crypto1Word(uid ^ nt);
             var nr = (uint)rnd.Next();
-            list.Add(new Nonce()
+            list.Add(new()
             {
                 Nr = state.Crypto1Word(nr) ^ nr,
                 Ar = p64 ^ state.Crypto1Word()
@@ -78,8 +78,8 @@ public class MfKeyTest
     [DataRow(0x5C688618u, 654321, 5, 0x1234567890ABuL)]
     public void MfKey32_ManyNtManyNonce(uint uid, int randomSeed, int nonceCount, ulong expectedKey)
     {
-        var list = new List<Nonce>();
-        Random rnd = new Random(randomSeed);
+        var list = (List<Nonce>)[];
+        Random rnd = new(randomSeed);
         for (int i = 0; i < nonceCount; i++)
         {
             var state = new Crypto1State(expectedKey);
@@ -87,7 +87,7 @@ public class MfKeyTest
             var nr = (uint)rnd.Next();
             var p64 = Crypto1.PrngSuccessor(nt, 64);
             state.Crypto1Word(uid ^ nt);
-            list.Add(new Nonce()
+            list.Add(new()
             {
                 Nt = nt,
                 Nr = state.Crypto1Word(nr) ^ nr,
