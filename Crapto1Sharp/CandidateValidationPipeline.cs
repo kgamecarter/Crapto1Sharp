@@ -211,12 +211,30 @@ internal sealed class CandidateValidationPipeline : IDisposable
     /// <summary>
     /// Enqueues the current producer batch and rents a replacement batch.
     /// </summary>
+    /// <remarks>
+    /// A second match cancels the stop token, possibly while the producer is
+    /// waiting here for room in the bounded queue. That ends production like a
+    /// second match seen in <see cref="Emit"/>: the batch is returned to the pool
+    /// and no exception escapes. Caller cancellation and worker failures still
+    /// propagate.
+    /// </remarks>
     private void EnqueueCurrent()
     {
         var batch = new CandidateBatch(_current!, _currentCount);
         _current = null;
         _currentCount = 0;
-        _queue!.Add(batch, _stopSource!.Token);
+        try
+        {
+            _queue!.Add(batch, _stopSource!.Token);
+        }
+        catch (OperationCanceledException)
+        {
+            Return(batch.States, batch.Count);
+            _externalCancellation.ThrowIfCancellationRequested();
+            ThrowWorkerException();
+            if (Volatile.Read(ref _stopForMultipleMatches) == 0)
+                throw;
+        }
         _current = _pool.Rent(BatchLength);
     }
 

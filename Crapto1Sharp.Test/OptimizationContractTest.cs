@@ -190,6 +190,34 @@ public class OptimizationContractTest
     }
 
     [TestMethod]
+    public void ValidationPipeline_ProducerBlockedOnFullQueue_StopsAfterSecondMatch()
+    {
+        // Workers hold their first batches until the gate opens, so the producer fills the
+        // bounded queue and blocks adding the next batch. The second match then cancels the
+        // stop token under that blocked Add, which must end production instead of throwing.
+        // Three slots: the producer and two workers, whose queue holds four batches.
+        using var gate = new ManualResetEventSlim();
+        var options = new MfKeyExecutionOptions { MaxDegreeOfParallelism = 3 };
+        using var pipeline = new CandidateValidationPipeline(
+            (Crypto1State _, out ulong key) =>
+            {
+                gate.Wait();
+                key = 0x1234;
+                return true;
+            },
+            options);
+        using var release = new Timer(_ => gate.Set(), null, 500, Timeout.Infinite);
+
+        var emitted = 0;
+        while (pipeline.Emit(default))
+            emitted++;
+        pipeline.Finish();
+
+        Assert.IsTrue(emitted >= 4096 * 6, $"the producer stopped after {emitted} states");
+        Assert.IsTrue(pipeline.MatchCount >= 2);
+    }
+
+    [TestMethod]
     public void ValidationPipeline_PropagatesCancellation()
     {
         using var source = new CancellationTokenSource();
