@@ -1,0 +1,109 @@
+name: Build and test
+
+on:
+  workflow_call:
+    inputs:
+      release:
+        description: Build a stable package from a matching release tag.
+        type: boolean
+        default: false
+    outputs:
+      version:
+        description: The tested package version.
+        value: ${{ jobs.build-test.outputs.version }}
+      artifact_name:
+        description: The artifact containing the tested NuGet package.
+        value: ${{ jobs.build-test.outputs.artifact_name }}
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  build-test:
+    name: Build and test (Windows)
+    runs-on: windows-2022
+    timeout-minutes: 20
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      artifact_name: nuget-${{ steps.version.outputs.version }}-${{ github.run_attempt }}
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          global-json-file: global.json
+
+      - name: Set package version
+        id: version
+        env:
+          RELEASE_BUILD: ${{ inputs.release }}
+        run: |
+          [xml]$project = Get-Content Crapto1Sharp/Crapto1Sharp.csproj
+          $baseVersion = [string]$project.Project.PropertyGroup.Version
+          if ($baseVersion -notmatch '^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$') {
+            throw "Expected a three-part release version, got '$baseVersion'."
+          }
+          if ($env:RELEASE_BUILD -eq 'true') {
+            if ($env:GITHUB_EVENT_NAME -ne 'push' -or $env:GITHUB_REF -cne "refs/tags/v$baseVersion") {
+              throw "A release requires a push of tag v$baseVersion matching the project version."
+            }
+            # Fetch master and full history to allow an older merged release commit.
+            git fetch --unshallow --no-tags origin +refs/heads/master:refs/remotes/origin/master
+            if ($LASTEXITCODE -ne 0) { throw "Could not fetch release ancestry." }
+            git merge-base --is-ancestor HEAD origin/master
+            if ($LASTEXITCODE -ne 0) { throw "The release commit must be merged into master." }
+            $version = $baseVersion
+          } else {
+            $version = "$baseVersion-ci.$env:GITHUB_RUN_NUMBER"
+          }
+          "PACKAGE_VERSION=$version" >> $env:GITHUB_ENV
+          "ASSEMBLY_VERSION=$baseVersion.0" >> $env:GITHUB_ENV
+          "version=$version" >> $env:GITHUB_OUTPUT
+          "NuGet package version: $version" >> $env:GITHUB_STEP_SUMMARY
+
+      - name: Restore
+        run: dotnet restore Crapto1Sharp.slnx
+
+      - name: Build all target frameworks and package
+        run: >-
+          dotnet build Crapto1Sharp.slnx --configuration Release --no-restore
+          -p:ContinuousIntegrationBuild=true
+          -p:Version=$env:PACKAGE_VERSION
+          -p:PackageVersion=$env:PACKAGE_VERSION
+          -p:AssemblyVersion=$env:ASSEMBLY_VERSION
+          -p:FileVersion=$env:ASSEMBLY_VERSION
+          -p:InformationalVersion=$env:PACKAGE_VERSION
+
+      - name: Test .NET 10 and .NET Framework 4.6.2
+        run: >-
+          dotnet test Crapto1Sharp.Test/Crapto1Sharp.Test.csproj
+          --configuration Release --no-build --no-restore
+          --logger "trx;LogFilePrefix=tests" --results-directory TestResults
+
+      - name: Upload test reports
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: test-results-${{ github.run_number }}-${{ github.run_attempt }}
+          path: TestResults/*.trx
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Upload tested NuGet package
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: nuget-${{ steps.version.outputs.version }}-${{ github.run_attempt }}
+          path: Crapto1Sharp/bin/Release/Crapto1Sharp.${{ steps.version.outputs.version }}.nupkg
+          if-no-files-found: error
+          retention-days: 30
