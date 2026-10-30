@@ -64,8 +64,8 @@ public class CandidateValidationPipelineTest
         {
             Assert.IsTrue(workersReady.Wait(WaitTimeoutMilliseconds), "Both workers must hold a batch.");
             Assert.IsTrue(queueFilled.Wait(WaitTimeoutMilliseconds), "The four queue slots must be full.");
-            // This thread has no other blocking operation before its seventh Add.
-            WaitForBlockedProducer(producer);
+            // Observe the seventh batch handoff before releasing either worker.
+            WaitForBlockedProducer(pipeline, producer);
             releaseWorkers.Set();
             Assert.IsTrue(producer.Join(WaitTimeoutMilliseconds), "The producer must stop after cancellation.");
             Assert.IsNull(producerException);
@@ -147,7 +147,7 @@ public class CandidateValidationPipelineTest
         {
             Assert.IsTrue(workersReady.Wait(WaitTimeoutMilliseconds), "Both workers must hold a batch.");
             Assert.IsTrue(finishing.Wait(WaitTimeoutMilliseconds), "Finish must have a partial batch to enqueue.");
-            WaitForBlockedProducer(producer);
+            WaitForBlockedProducer(pipeline, producer);
             if (cancelExternally)
                 cancellation.Cancel();
             releaseFailure.Set();
@@ -184,13 +184,19 @@ public class CandidateValidationPipelineTest
     private static bool IsBlocked(Thread thread) =>
         (thread.ThreadState & ThreadState.WaitSleepJoin) != 0;
 
-    private static void WaitForBlockedProducer(Thread producer)
+    private static void WaitForBlockedProducer(CandidateValidationPipeline pipeline, Thread producer)
     {
+        // Both workers are gated and the queue is full. A null current batch
+        // proves EnqueueCurrent has transferred ownership before attempting Add.
+        // ThreadState alone can also observe transient waits while renting a
+        // batch, and a blocked thread can briefly wake before waiting again.
         Assert.IsTrue(SpinWait.SpinUntil(
-            () => IsBlocked(producer) || !producer.IsAlive,
-            WaitTimeoutMilliseconds), "The producer must reach its blocking operation.");
+            () => (ReadField<Crypto1State[]?>(pipeline, "_current") == null && IsBlocked(producer))
+                || !producer.IsAlive,
+            WaitTimeoutMilliseconds), "The producer must reach its pending enqueue.");
         Assert.IsTrue(producer.IsAlive, "The producer must still be running.");
-        Assert.IsTrue(IsBlocked(producer), "The producer must be blocked on the full queue.");
+        // Do not re-read ThreadState: it is a momentary scheduling snapshot.
+        Assert.IsNull(ReadField<Crypto1State[]?>(pipeline, "_current"));
     }
 
     private static T ReadField<T>(CandidateValidationPipeline pipeline, string name) =>
