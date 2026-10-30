@@ -1,5 +1,4 @@
-[![Build status](https://ci.appveyor.com/api/projects/status/pk76r1bhc0rndub1?svg=true)](https://ci.appveyor.com/project/kgame/crapto1sharp)
-[![AppVeyor tests](https://img.shields.io/appveyor/tests/kgame/crapto1sharp.svg)](https://ci.appveyor.com/project/kgame/crapto1sharp/build/tests)
+[![CI](https://github.com/kgamecarter/Crapto1Sharp/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/kgamecarter/Crapto1Sharp/actions/workflows/ci.yml)
 [![NuGet](https://img.shields.io/nuget/v/Crapto1Sharp.svg)](https://www.nuget.org/packages/Crapto1Sharp/)
 
 **English** | [繁體中文](README.zh-TW.md)
