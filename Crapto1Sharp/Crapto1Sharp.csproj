@@ -11,7 +11,7 @@
     <PackageProjectUrl>https://github.com/kgamecarter/Crapto1Sharp</PackageProjectUrl>
     <RepositoryUrl>https://github.com/kgamecarter/Crapto1Sharp</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <Version>2.0.0</Version>
+    <Version>2.0.1</Version>
     <PackageTags>mifare crypto1 crapto1</PackageTags>
     <DefineConstants Condition=" '$(TargetFramework)' == 'net462' ">NET462</DefineConstants>
     <DefineConstants Condition=" '$(TargetFramework)' == 'net10.0' ">NET10</DefineConstants>

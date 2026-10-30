@@ -1,0 +1,81 @@
+name: Publish NuGet
+
+on:
+  push:
+    tags: ['v[0-9]*.[0-9]*.[0-9]*']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nuget-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build-test:
+    uses: ./.github/workflows/build.yml
+    with:
+      release: true
+
+  publish:
+    name: Publish tested package to NuGet.org
+    needs: build-test
+    runs-on: windows-2022
+    environment: nuget
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      id-token: write
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - name: Set up .NET
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: 10.0.402
+
+      - name: Download the tested package
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          name: ${{ needs.build-test.outputs.artifact_name }}
+          path: artifacts
+
+      - name: Verify release package
+        env:
+          RELEASE_VERSION: ${{ needs.build-test.outputs.version }}
+          NUGET_USER: ${{ vars.NUGET_USER }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:NUGET_USER)) {
+            throw "Configure the NUGET_USER repository variable and NuGet Trusted Publishing policy."
+          }
+          $package = "artifacts/Crapto1Sharp.$env:RELEASE_VERSION.nupkg"
+          if (!(Test-Path -LiteralPath $package)) { throw "Missing tested package: $package" }
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          $archive = [System.IO.Compression.ZipFile]::OpenRead((Resolve-Path $package))
+          try {
+            $entry = $archive.GetEntry('Crapto1Sharp.nuspec')
+            if ($null -eq $entry) { throw "Package metadata is missing." }
+            $reader = [System.IO.StreamReader]::new($entry.Open())
+            try { [xml]$nuspec = $reader.ReadToEnd() } finally { $reader.Dispose() }
+            if ($nuspec.package.metadata.id -cne 'Crapto1Sharp' -or
+                $nuspec.package.metadata.version -cne $env:RELEASE_VERSION -or
+                $env:GITHUB_REF -cne "refs/tags/v$env:RELEASE_VERSION") {
+              throw "Package identity/version does not match the release tag."
+            }
+          } finally { $archive.Dispose() }
+
+      - name: Authenticate to NuGet.org
+        uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1
+        id: login
+        with:
+          user: ${{ vars.NUGET_USER }}
+
+      - name: Publish tested package
+        env:
+          NUGET_API_KEY: ${{ steps.login.outputs.NUGET_API_KEY }}
+          RELEASE_VERSION: ${{ needs.build-test.outputs.version }}
+        run: >-
+          dotnet nuget push "artifacts/Crapto1Sharp.$env:RELEASE_VERSION.nupkg"
+          --api-key "$env:NUGET_API_KEY"
+          --source https://api.nuget.org/v3/index.json
