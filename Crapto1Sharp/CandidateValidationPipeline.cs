@@ -190,20 +190,24 @@ internal sealed class CandidateValidationPipeline : IDisposable
         finally
         {
             _queue.CompleteAdding();
+            // EnqueueCurrent can rethrow a worker failure. Join before that
+            // exception escapes, so Dispose never races with active workers.
+            try
+            {
+                Task.WaitAll(_workers!);
+            }
+            catch (AggregateException) when (
+                _workerException != null ||
+                Volatile.Read(ref _stopForMultipleMatches) != 0 ||
+                _externalCancellation.IsCancellationRequested)
+            {
+            }
+            finally
+            {
+                DrainQueue();
+            }
         }
 
-        try
-        {
-            Task.WaitAll(_workers!);
-        }
-        catch (AggregateException) when (
-            _workerException != null ||
-            Volatile.Read(ref _stopForMultipleMatches) != 0 ||
-            _externalCancellation.IsCancellationRequested)
-        {
-        }
-
-        DrainQueue();
         _externalCancellation.ThrowIfCancellationRequested();
         ThrowWorkerException();
     }
